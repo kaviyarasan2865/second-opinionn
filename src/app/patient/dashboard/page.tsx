@@ -9,14 +9,14 @@ import {
   MessageCircle,
   User,
   Bell,
-
   Activity,
   Pill,
   CalendarIcon,
   FileTextIcon,
-
   LogOut,
   Send,
+  Settings,
+  ChevronDown
 } from "lucide-react"
 import Image from 'next/image'
 
@@ -34,7 +34,22 @@ export default function PatientDashboard() {
   ])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [showProfileMenu, setShowProfileMenu] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const profileMenuRef = useRef<HTMLDivElement>(null)
+
+  // Close profile menu when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(event.target as Node)) {
+        setShowProfileMenu(false)
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside)
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside)
+    }
+  }, [profileMenuRef])
 
   // Scroll to bottom of chat when messages change
   useEffect(() => {
@@ -131,6 +146,11 @@ export default function PatientDashboard() {
     // setIsLoading(false);
   }
 
+  // Toggle profile menu
+  const toggleProfileMenu = () => {
+    setShowProfileMenu(!showProfileMenu)
+  }
+
   // Mock data for dashboard
   const upcomingAppointments = [
     { id: 1, doctor: "Dr. Sarah Johnson", specialty: "Cardiology", date: "May 15, 2024", time: "10:30 AM" },
@@ -181,7 +201,7 @@ export default function PatientDashboard() {
       </div>
 
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-10">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <div className="h-8 w-8 rounded-full bg-gradient-to-r from-teal-500 to-cyan-500 flex items-center justify-center">
@@ -196,42 +216,85 @@ export default function PatientDashboard() {
               <span className="absolute top-1 right-1 h-2 w-2 bg-red-500 rounded-full"></span>
             </button>
 
-            <div className="flex items-center gap-2">
-              {/* Custom Avatar */}
-              <div className="h-8 w-8 rounded-full bg-teal-100 flex items-center justify-center overflow-hidden">
-                {session?.user?.image ? (
-                  <Image
-                  height={20}
-                  width={20}
-                    src={session.user.image || "/placeholder.svg"}
-                    alt={session?.user?.name || "User"}
-                    className="h-full w-full object-cover"
-                  />
-                ) : (
-                  <span className="text-teal-800 font-medium">{session?.user?.name?.charAt(0) || "U"}</span>
-                )}
-              </div>
-              <span className="text-sm font-medium text-gray-700 hidden md:inline-block">
-                {session?.user?.name || session?.user?.email || "Patient"}
-              </span>
+            {/* Profile Dropdown */}
+            <div className="relative" ref={profileMenuRef}>
+              <button 
+                className="flex items-center gap-2 py-1 px-2 rounded-full hover:bg-gray-100 transition-colors"
+                onClick={toggleProfileMenu}
+              >
+                {/* Custom Avatar */}
+                <div className="h-8 w-8 rounded-full bg-teal-100 flex items-center justify-center overflow-hidden">
+                  {session?.user?.image ? (
+                    <Image
+                      height={32}
+                      width={32}
+                      src={session.user.image || "/placeholder.svg"}
+                      alt={session?.user?.name || "User"}
+                      className="h-full w-full object-cover"
+                    />
+                  ) : (
+                    <span className="text-teal-800 font-medium">{session?.user?.name?.charAt(0) || "U"}</span>
+                  )}
+                </div>
+                <span className="text-sm font-medium text-gray-700 hidden md:inline-block">
+                  {session?.user?.name || session?.user?.email || "Patient"}
+                </span>
+                <ChevronDown className="h-4 w-4 text-gray-500" />
+              </button>
+
+              {/* Dropdown Menu */}
+              {showProfileMenu && (
+                <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-1 z-20 border border-gray-200">
+                  <div className="px-4 py-3 border-b border-gray-100">
+                    <p className="text-sm font-medium text-gray-900">{session?.user?.name || "User"}</p>
+                    <p className="text-xs text-gray-500 truncate">{session?.user?.email || "user@example.com"}</p>
+                  </div>
+                  <a href="#" className=" px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+                    <User className="h-4 w-4" />
+                    <span>My Profile</span>
+                  </a>
+                  <a href="#" className=" px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 flex items-center gap-2">
+                    <Settings className="h-4 w-4" />
+                    <span>Settings</span>
+                  </a>
+                  <button 
+                    onClick={() => signOut()} 
+                    className=" w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 flex items-center gap-2"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    <span>Sign Out</span>
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>
       </header>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-6">
+      <div className="container mx-auto px-4 py-6 pb-24">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Left Sidebar - Quick Info */}
           <div className="lg:col-span-1 space-y-6">
             {/* Welcome Card */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
               <h2 className="text-xl font-bold text-gray-800 mb-2">Welcome back, {session?.user?.name?.split(" ")[0] || "Patient"}</h2>
               <p className="text-gray-600">How can we help you today?</p>
+              
+              {/* Health summary preview */}
+              <div className="mt-4 pt-4 border-t border-gray-100">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-sm font-medium text-gray-700">Health Score</span>
+                  <span className="text-teal-600 font-semibold">92/100</span>
+                </div>
+                <div className="w-full bg-gray-200 rounded-full h-2">
+                  <div className="bg-gradient-to-r from-teal-500 to-cyan-500 h-2 rounded-full" style={{ width: "92%" }}></div>
+                </div>
+              </div>
             </div>
 
             {/* Quick Stats */}
-            <div className="bg-white rounded-xl shadow-sm p-6">
+            <div className="bg-white rounded-xl shadow-sm p-6 border border-gray-100">
               <h3 className="text-lg font-semibold text-gray-800 mb-4">Quick Stats</h3>
               <div className="space-y-4">
                 <div className="flex items-center justify-between">
@@ -262,45 +325,17 @@ export default function PatientDashboard() {
                   <span className="font-medium">{medications.length} active</span>
                 </div>
               </div>
-            </div>
-
-            {/* Navigation */}
-            <div className="bg-white rounded-xl shadow-sm p-4">
-              <nav className="space-y-1">
-                <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-teal-700 bg-teal-50 font-medium text-sm hover:bg-teal-100 transition-colors">
-                  <Activity className="h-5 w-5" />
-                  <span>Dashboard</span>
-                </button>
-                <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-gray-700 font-medium text-sm hover:bg-teal-50 hover:text-teal-700 transition-colors">
-                  <CalendarIcon className="h-5 w-5" />
-                  <span>Appointments</span>
-                </button>
-                <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-gray-700 font-medium text-sm hover:bg-teal-50 hover:text-teal-700 transition-colors">
-                  <FileTextIcon className="h-5 w-5" />
-                  <span>Medical Records</span>
-                </button>
-                <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-gray-700 font-medium text-sm hover:bg-teal-50 hover:text-teal-700 transition-colors">
-                  <Pill className="h-5 w-5" />
-                  <span>Medications</span>
-                </button>
-                <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-gray-700 font-medium text-sm hover:bg-teal-50 hover:text-teal-700 transition-colors">
-                  <User className="h-5 w-5" />
-                  <span>Profile</span>
-                </button>
-                <button
-                  className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-red-600 font-medium text-sm hover:bg-red-50 hover:text-red-700 transition-colors"
-                  onClick={() => signOut()}
-                >
-                  <LogOut className="h-5 w-5" />
-                  <span>Sign Out</span>
-                </button>
-              </nav>
+              
+              {/* View All Button */}
+              <button className="mt-4 w-full py-2 bg-gray-50 text-teal-600 text-sm font-medium rounded-lg hover:bg-gray-100 transition-colors">
+                View All Stats
+              </button>
             </div>
           </div>
 
           {/* Main Chat Interface */}
           <div className="lg:col-span-2">
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden h-[calc(100vh-12rem)] flex flex-col">
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden h-[calc(100vh-12rem)] flex flex-col border border-gray-100">
               {/* Chat Header */}
               <div className="bg-gradient-to-r from-teal-600 to-cyan-600 p-4 text-white flex justify-between items-center">
                 <div className="flex items-center gap-2">
@@ -313,7 +348,10 @@ export default function PatientDashboard() {
                   </div>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="text-xs bg-white/20 px-2 py-1 rounded-full">Online</span>
+                  <span className="inline-flex items-center text-xs bg-white/20 px-2 py-1 rounded-full">
+                    <span className="h-2 w-2 bg-green-300 rounded-full mr-1 animate-pulse"></span>
+                    Online
+                  </span>
                 </div>
               </div>
 
@@ -325,18 +363,26 @@ export default function PatientDashboard() {
                       <div
                         className={`max-w-[80%] rounded-lg p-3 ${
                           message.sender === "patient"
-                            ? "bg-teal-600 text-white"
-                            : "bg-white border border-gray-200 text-gray-800"
+                            ? "bg-gradient-to-r from-teal-600 to-teal-500 text-white shadow-sm"
+                            : "bg-white border border-gray-200 text-gray-800 shadow-sm"
                         }`}
                       >
                         <div className="flex items-center gap-2 mb-2">
-                          <User className="w-4 h-4" />
-                          <span className="font-medium">
+                          {message.sender === "patient" ? (
+                            <div className="h-5 w-5 bg-teal-100 rounded-full flex items-center justify-center">
+                              <span className="text-xs text-teal-800">{session?.user?.name?.charAt(0) || "Y"}</span>
+                            </div>
+                          ) : (
+                            <div className="h-5 w-5 bg-blue-100 rounded-full flex items-center justify-center">
+                              <span className="text-xs text-blue-800">D</span>
+                            </div>
+                          )}
+                          <span className="font-medium text-sm">
                             {message.sender === "patient" ? "You" : "Doctor"}
                           </span>
-                          <Clock className="w-4 h-4 ml-auto" />
-                          <span className="text-sm opacity-80">
-                            {message.timestamp.toLocaleTimeString()}
+                          <span className="text-xs opacity-80 ml-auto flex items-center">
+                            <Clock className="w-3 h-3 mr-1" />
+                            {message.timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                           </span>
                         </div>
                         <p>{message.content}</p>
@@ -345,7 +391,13 @@ export default function PatientDashboard() {
                   ))}
                   {isLoading && (
                     <div className="flex justify-start">
-                      <div className="max-w-[80%] rounded-lg p-3 bg-white border border-gray-200">
+                      <div className="max-w-[80%] rounded-lg p-3 bg-white border border-gray-200 shadow-sm">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="h-5 w-5 bg-blue-100 rounded-full flex items-center justify-center">
+                            <span className="text-xs text-blue-800">D</span>
+                          </div>
+                          <span className="font-medium text-sm">Doctor</span>
+                        </div>
                         <div className="flex space-x-2">
                           <div className="h-2 w-2 rounded-full bg-gray-300 animate-bounce"></div>
                           <div
@@ -377,18 +429,49 @@ export default function PatientDashboard() {
                   />
                   <button
                     type="submit"
-                    className="rounded-full bg-teal-600 hover:bg-teal-700 text-white p-3 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="rounded-full bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white p-3 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
                     disabled={isLoading || !input.trim()}
                   >
                     <Send className="h-5 w-5" />
                     <span className="sr-only">Send</span>
                   </button>
                 </div>
+                <div className="text-xs text-gray-500 mt-2 text-center">
+                  Your messages are secure and encrypted
+                </div>
               </form>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Fixed Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-teal-600 to-cyan-600 border-t rounded-full border-gray-200 shadow-lg mx-auto max-w-4xl m-3">
+        <div className="container mx-auto">
+          <div className="flex justify-around items-center py-2">
+            <button className="flex flex-col items-center gap-1 px-4 py-2 rounded-full text-teal-700 bg-teal-50">
+              <Activity className="h-5 w-5" />
+              <span className="text-xs font-medium">Dashboard</span>
+            </button>
+            <button className="flex flex-col items-center gap-1 px-4 py-2 rounded-full text-gray-200 hover:bg-gray-50 hover:text-teal-700 transition-colors">
+              <CalendarIcon className="h-5 w-5" />
+              <span className="text-xs">Appointments</span>
+            </button>
+            <button className="flex flex-col items-center gap-1 px-4 py-2 rounded-full text-gray-200 hover:bg-gray-50 hover:text-teal-700 transition-colors">
+              <FileTextIcon className="h-5 w-5" />
+              <span className="text-xs">Records</span>
+            </button>
+            <button className="flex flex-col items-center gap-1 px-4 py-2 rounded-full text-gray-200 hover:bg-gray-50 hover:text-teal-700 transition-colors">
+              <Pill className="h-5 w-5" />
+              <span className="text-xs">Medications</span>
+            </button>
+            <button className="flex flex-col items-center gap-1 px-4 py-2 rounded-full text-gray-200 hover:bg-gray-50 hover:text-teal-700 transition-colors">
+              <User className="h-5 w-5" />
+              <span className="text-xs">Profile</span>
+            </button>
+          </div>
+        </div>
+      </nav>
     </div>
   )
 }

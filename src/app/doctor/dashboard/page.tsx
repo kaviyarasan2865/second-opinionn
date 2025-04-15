@@ -1,6 +1,6 @@
 "use client"
 
-import {  useEffect } from "react"
+import {  useEffect, useState, useCallback } from "react"
 import { useSession, signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import {
@@ -12,20 +12,163 @@ import {
   CalendarIcon,
   ClipboardList,
   MessageSquare,
-  Settings,
+ 
   LogOut,
   CheckCircle,
   AlertCircle,
-  BarChart
+
 } from "lucide-react"
 import Image from 'next/image'
 
+interface Patient {
+  _id: string;
+  name: string;
+  email?: string;
+  image: string;
+  age: number;
+  gender: string;
+  medicalHistory: Array<{
+    condition: string;
+    date: string;
+    notes?: string;
+  }>;
+  lastVisit: string | null;
+  joinedDate: string | null;
+}
 
+interface ConnectionRequest {
+  _id: string;
+  status: string;
+  date: string;
+  time: string;
+  createdAt: string;
+  updatedAt: string;
+  patient: Patient;
+}
+
+interface ApiResponse {
+  data: ConnectionRequest[];
+}
+
+interface PendingReview {
+  id: string;
+  patient: string;
+  type: string;
+  date: string;
+  time: string;
+  priority: string;
+  image: string;
+  patientId: string;
+  status: string;
+  lastVisit: string;
+  medicalHistory: Array<{
+    condition: string;
+    date: string;
+    notes?: string;
+  }>;
+}
+
+interface TodayAppointment {
+  id: string;
+  patient: string;
+  age: number;
+  time: string;
+  date: string;
+  type: string;
+  status: string;
+  image: string;
+  patientId: string;
+  lastVisit: string;
+  gender: string;
+}
 
 export default function DoctorDashboard() {
   const { data: session } = useSession()
   const router = useRouter()
- 
+  const [pendingReviews, setPendingReviews] = useState<PendingReview[]>([])
+  const [todayAppointments, setTodayAppointments] = useState<TodayAppointment[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+
+  // Fetch both pending and accepted patients
+  const fetchPatients = useCallback(async () => {
+    try {
+      setIsLoading(true)
+      // Fetch pending patients
+      const pendingResponse = await fetch(`/api/doctor/requested-patient?doctorId=${session?.user?.id}&status=pending`)
+      const pendingData = await pendingResponse.json() as ApiResponse
+      
+      // Fetch accepted patients
+      const acceptedResponse = await fetch(`/api/doctor/requested-patient?doctorId=${session?.user?.id}&status=accepted`)
+      const acceptedData = await acceptedResponse.json() as ApiResponse
+
+      if (pendingData.data) {
+        const pendingReviewsData = pendingData.data.map((request) => ({
+          id: request._id,
+          patient: request.patient.name,
+          type: "Connection Request",
+          date: request.date,
+          time: request.time,
+          priority: "High",
+          image: request.patient.image,
+          patientId: request.patient._id,
+          status: request.status,
+          lastVisit: request.patient.lastVisit ? new Date(request.patient.lastVisit).toLocaleDateString() : 'No previous visits',
+          medicalHistory: request.patient.medicalHistory
+        }))
+        setPendingReviews(pendingReviewsData)
+      }
+
+      if (acceptedData.data) {
+        const todayAppointmentsData = acceptedData.data.map((request) => ({
+          id: request._id,
+          patient: request.patient.name,
+          age: request.patient.age,
+          time: request.time,
+          date: request.date,
+          type: request.patient.medicalHistory.length > 0 ? "Follow-up" : "New Patient",
+          status: "Scheduled",
+          image: request.patient.image,
+          patientId: request.patient._id,
+          lastVisit: request.patient.lastVisit ? new Date(request.patient.lastVisit).toLocaleDateString() : 'No previous visits',
+          gender: request.patient.gender
+        }))
+        setTodayAppointments(todayAppointmentsData)
+      }
+    } catch (error) {
+      console.error('Error fetching patients:', error)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [session?.user?.id])
+
+  // Add this function after the fetchPatients function
+  const handleConnectionRequest = async (requestId: string, status: 'accepted' | 'rejected') => {
+    try {
+      const response = await fetch('/api/doctor/accept-connection', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ requestId, status }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update connection request');
+      }
+
+      // Refresh the data after successful update
+      fetchPatients();
+    } catch (error) {
+      console.error('Error updating connection request:', error);
+    }
+  };
+
+  // Fetch patients on component mount and when session changes
+  useEffect(() => {
+    if (session?.user?.id) {
+      fetchPatients()
+    }
+  }, [session, fetchPatients])
 
   // Redirect if not authenticated or not a doctor
   useEffect(() => {
@@ -91,107 +234,6 @@ export default function DoctorDashboard() {
 
  
   // Mock data for doctor dashboard
-  const todayAppointments = [
-    {
-      id: 1,
-      patient: "Sarah Johnson",
-      age: 42,
-      time: "10:30 AM",
-      type: "Follow-up",
-      status: "Checked In",
-      image: "/placeholder.svg?height=40&width=40",
-    },
-    {
-      id: 2,
-      patient: "Michael Chen",
-      age: 65,
-      time: "11:45 AM",
-      type: "Consultation",
-      status: "Scheduled",
-      image: "/placeholder.svg?height=40&width=40",
-    },
-    {
-      id: 3,
-      patient: "Emily Rodriguez",
-      age: 28,
-      time: "2:15 PM",
-      type: "New Patient",
-      status: "Scheduled",
-      image: "/placeholder.svg?height=40&width=40",
-    },
-    {
-      id: 4,
-      patient: "Robert Williams",
-      age: 54,
-      time: "3:30 PM",
-      type: "Follow-up",
-      status: "Scheduled",
-      image: "/placeholder.svg?height=40&width=40",
-    },
-  ]
-
-  const pendingReviews = [
-    {
-      id: 1,
-      patient: "David Thompson",
-      type: "Lab Results",
-      date: "May 2, 2024",
-      priority: "High",
-      image: "/placeholder.svg?height=40&width=40",
-    },
-    {
-      id: 2,
-      patient: "Jessica Lee",
-      type: "MRI Report",
-      date: "May 3, 2024",
-      priority: "Medium",
-      image: "/placeholder.svg?height=40&width=40",
-    },
-    {
-      id: 3,
-      patient: "Thomas Brown",
-      type: "Medication Review",
-      date: "May 3, 2024",
-      priority: "Low",
-      image: "/placeholder.svg?height=40&width=40",
-    },
-  ]
-
-  const recentPatients = [
-    {
-      id: 1,
-      name: "Jennifer Adams",
-      lastVisit: "April 28, 2024",
-      condition: "Hypertension",
-      status: "Stable",
-      image: "/placeholder.svg?height=40&width=40",
-    },
-    {
-      id: 2,
-      name: "Kevin Martinez",
-      lastVisit: "April 30, 2024",
-      condition: "Diabetes Type 2",
-      status: "Improving",
-      image: "/placeholder.svg?height=40&width=40",
-    },
-    {
-      id: 3,
-      name: "Lisa Wilson",
-      lastVisit: "May 1, 2024",
-      condition: "Asthma",
-      status: "Stable",
-      image: "/placeholder.svg?height=40&width=40",
-    },
-    {
-      id: 4,
-      name: "Mark Johnson",
-      lastVisit: "May 2, 2024",
-      condition: "Post-Surgery",
-      status: "Recovering",
-      image: "/placeholder.svg?height=40&width=40",
-    },
-  ]
-
   const performanceMetrics = [
     { id: 1, label: "Patients Seen", value: 28, target: 30, percentage: 93 },
     { id: 2, label: "Avg. Consultation", value: "18 min", target: "20 min", percentage: 90 },
@@ -259,9 +301,9 @@ export default function DoctorDashboard() {
               <div className="h-8 w-8 rounded-full bg-teal-100 flex items-center justify-center overflow-hidden">
                 {session?.user?.image ? (
                   <Image
-                  width={20}
-                  height= {20}
-                    src={session.user.image || "/placeholder.svg"}
+                    width={20}
+                    height={20}
+                    src={session.user.image || "https://static.vecteezy.com/system/resources/previews/020/156/848/non_2x/patient-icon-design-free-vector.jpg"}
                     alt={session?.user?.name || "User"}
                     className="h-full w-full object-cover"
                   />
@@ -277,52 +319,8 @@ export default function DoctorDashboard() {
         </div>
       </header>
 
-      {/* Sidebar and Main Content */}
-      <div className="container mx-auto px-4 py-6 flex flex-col md:flex-row gap-6">
-        {/* Sidebar */}
-        <aside className="w-full md:w-64 bg-white rounded-xl shadow-sm p-4">
-          <nav className="space-y-1">
-            {/* Custom Buttons */}
-            <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-teal-700 bg-teal-50 font-medium text-sm hover:bg-teal-100 transition-colors">
-              <Activity className="h-5 w-5" />
-              <span>Dashboard</span>
-            </button>
-            <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-gray-700 font-medium text-sm hover:bg-teal-50 hover:text-teal-700 transition-colors">
-              <CalendarIcon className="h-5 w-5" />
-              <span>Schedule</span>
-            </button>
-            <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-gray-700 font-medium text-sm hover:bg-teal-50 hover:text-teal-700 transition-colors">
-              <Users className="h-5 w-5" />
-              <span>Patients</span>
-            </button>
-            <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-gray-700 font-medium text-sm hover:bg-teal-50 hover:text-teal-700 transition-colors">
-              <ClipboardList className="h-5 w-5" />
-              <span>Medical Records</span>
-            </button>
-            <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-gray-700 font-medium text-sm hover:bg-teal-50 hover:text-teal-700 transition-colors">
-              <MessageSquare className="h-5 w-5" />
-              <span>Messages</span>
-            </button>
-            <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-gray-700 font-medium text-sm hover:bg-teal-50 hover:text-teal-700 transition-colors">
-              <BarChart className="h-5 w-5" />
-              <span>Analytics</span>
-            </button>
-            <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-gray-700 font-medium text-sm hover:bg-teal-50 hover:text-teal-700 transition-colors">
-              <Settings className="h-5 w-5" />
-              <span>Settings</span>
-            </button>
-            <hr className="my-4" />
-            <button
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-red-600 font-medium text-sm hover:bg-red-50 hover:text-red-700 transition-colors"
-              onClick={() => signOut()}
-            >
-              <LogOut className="h-5 w-5" />
-              <span>Sign Out</span>
-            </button>
-          </nav>
-        </aside>
-
-        {/* Main Content */}
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-6 pb-24">
         <main className="flex-1 space-y-6">
           {/* Welcome Section */}
           <section className="bg-gradient-to-r from-teal-500 to-cyan-600 rounded-xl p-6 text-white shadow-md">
@@ -386,7 +384,11 @@ export default function DoctorDashboard() {
                 </button>
               </div>
               <div className="p-4">
-                {todayAppointments.length > 0 ? (
+                {isLoading ? (
+                  <div className="flex justify-center items-center py-6">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+                  </div>
+                ) : todayAppointments.length > 0 ? (
                   <div className="space-y-3">
                     {todayAppointments.map((appointment) => (
                       <div
@@ -395,9 +397,9 @@ export default function DoctorDashboard() {
                       >
                         <div className="h-10 w-10 rounded-full overflow-hidden mr-3">
                           <Image
-                          height={20}
-                          width={20}
-                            src={appointment.image || "/placeholder.svg"}
+                            height={20}
+                            width={20}
+                            src={appointment.image || "https://static.vecteezy.com/system/resources/previews/020/156/848/non_2x/patient-icon-design-free-vector.jpg"}
                             alt={appointment.patient}
                             className="h-full w-full object-cover"
                           />
@@ -405,11 +407,11 @@ export default function DoctorDashboard() {
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
                             <h4 className="font-medium text-gray-900">{appointment.patient}</h4>
-                            <span className="text-sm text-gray-600">{appointment.time}</span>
+                            <span className="text-sm text-gray-600">{appointment.time} on {appointment.date}</span>
                           </div>
                           <div className="flex items-center justify-between mt-1">
                             <p className="text-sm text-gray-500">
-                              {appointment.age} yrs • {appointment.type}
+                              {appointment.age} yrs • {appointment.gender} • {appointment.type}
                             </p>
                             <span
                               className={`text-xs px-2 py-0.5 rounded-full ${
@@ -421,6 +423,9 @@ export default function DoctorDashboard() {
                               {appointment.status}
                             </span>
                           </div>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Last Visit: {appointment.lastVisit}
+                          </p>
                         </div>
                       </div>
                     ))}
@@ -440,7 +445,11 @@ export default function DoctorDashboard() {
                 </button>
               </div>
               <div className="p-4">
-                {pendingReviews.length > 0 ? (
+                {isLoading ? (
+                  <div className="flex justify-center items-center py-6">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600"></div>
+                  </div>
+                ) : pendingReviews.length > 0 ? (
                   <div className="space-y-3">
                     {pendingReviews.map((review) => (
                       <div
@@ -449,9 +458,9 @@ export default function DoctorDashboard() {
                       >
                         <div className="h-10 w-10 rounded-full overflow-hidden mr-3">
                           <Image
-                          height={20}
-                          width={20}
-                            src={review.image || "/placeholder.svg"}
+                            height={20}
+                            width={20}
+                            src={review.image || "https://static.vecteezy.com/system/resources/previews/020/156/848/non_2x/patient-icon-design-free-vector.jpg"}
                             alt={review.patient}
                             className="h-full w-full object-cover"
                           />
@@ -473,12 +482,28 @@ export default function DoctorDashboard() {
                           </div>
                           <div className="flex items-center justify-between mt-1">
                             <p className="text-sm text-gray-500">{review.type}</p>
-                            <span className="text-xs text-gray-500">{review.date}</span>
+                            <span className="text-xs text-gray-500">{review.date} at {review.time}</span>
                           </div>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Last Visit: {review.lastVisit}
+                          </p>
                         </div>
-                        <button className="ml-2 px-3 py-1 text-sm border border-teal-200 text-teal-600 rounded-md hover:bg-teal-50">
-                          Review
-                        </button>
+                        <div className="flex gap-2 ml-2">
+                          <button 
+                            onClick={() => handleConnectionRequest(review.id, 'accepted')}
+                            className="px-3 py-1 text-sm bg-green-100 text-green-700 rounded-md hover:bg-green-200 flex items-center gap-1"
+                          >
+                            <CheckCircle className="h-4 w-4" />
+                            Accept
+                          </button>
+                          <button 
+                            onClick={() => handleConnectionRequest(review.id, 'rejected')}
+                            className="px-3 py-1 text-sm bg-red-100 text-red-700 rounded-md hover:bg-red-200 flex items-center gap-1"
+                          >
+                            <AlertCircle className="h-4 w-4" />
+                            Reject
+                          </button>
+                        </div>
                       </div>
                     ))}
                   </div>
@@ -487,81 +512,44 @@ export default function DoctorDashboard() {
                 )}
               </div>
             </div>
-
-            {/* Recent Patients - Custom Card */}
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden lg:col-span-2">
-              <div className="px-6 py-4 flex items-center justify-between border-b border-gray-100">
-                <h3 className="text-lg font-bold text-gray-800">Recent Patients</h3>
-                <button className="text-teal-600 hover:text-teal-700 text-sm font-medium flex items-center">
-                  View All Patients <ChevronRight className="h-4 w-4 ml-1" />
-                </button>
-              </div>
-              <div className="p-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                  {recentPatients.map((patient) => (
-                    <div
-                      key={patient.id}
-                      className="p-4 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="flex items-center mb-3">
-                        <div className="h-10 w-10 rounded-full overflow-hidden mr-3">
-                          <Image
-                          height={20}
-                          width={20}
-                            src={patient.image || "/placeholder.svg"}
-                            alt={patient.name}
-                            className="h-full w-full object-cover"
-                          />
-                        </div>
-                        <h4 className="font-medium text-gray-900">{patient.name}</h4>
-                      </div>
-                      <div className="space-y-2 text-sm text-gray-600">
-                        <p>
-                          <span className="font-medium">Condition:</span> {patient.condition}
-                        </p>
-                        <p>
-                          <span className="font-medium">Last Visit:</span> {patient.lastVisit}
-                        </p>
-                        <div className="flex items-center mt-2">
-                          <span
-                            className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 ${
-                              patient.status === "Stable"
-                                ? "bg-green-100 text-green-700"
-                                : patient.status === "Improving"
-                                  ? "bg-blue-100 text-blue-700"
-                                  : "bg-yellow-100 text-yellow-700"
-                            }`}
-                          >
-                            {patient.status === "Stable" ? (
-                              <CheckCircle className="h-3 w-3" />
-                            ) : patient.status === "Improving" ? (
-                              <CheckCircle className="h-3 w-3" />
-                            ) : (
-                              <AlertCircle className="h-3 w-3" />
-                            )}
-                            {patient.status}
-                          </span>
-                        </div>
-                      </div>
-                      <div className="mt-3 flex space-x-2">
-                        <button className="flex-1 px-2 py-1 text-xs border border-teal-200 text-teal-600 rounded-md hover:bg-teal-50">
-                          View Records
-                        </button>
-                        <button className="flex-1 px-2 py-1 text-xs bg-teal-600 text-white rounded-md hover:bg-teal-700">
-                          Message
-                        </button>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
           </div>
         </main>
       </div>
 
-
-
+      {/* Fixed Bottom Navigation */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-teal-600 to-cyan-600 border-t rounded-full border-gray-200 shadow-lg mx-auto max-w-4xl m-3">
+        <div className="container mx-auto">
+          <div className="flex justify-around items-center py-2">
+            <button className="flex flex-col items-center gap-1 px-4 py-2 rounded-full text-teal-700 bg-teal-50">
+              <Activity className="h-5 w-5" />
+              <span className="text-xs font-medium">Dashboard</span>
+            </button>
+            <button className="flex flex-col items-center gap-1 px-4 py-2 rounded-full text-gray-200 hover:bg-gray-50 hover:text-teal-700 transition-colors">
+              <CalendarIcon className="h-5 w-5" />
+              <span className="text-xs">Schedule</span>
+            </button>
+            <button className="flex flex-col items-center gap-1 px-4 py-2 rounded-full text-gray-200 hover:bg-gray-50 hover:text-teal-700 transition-colors">
+              <Users className="h-5 w-5" />
+              <span className="text-xs">Patients</span>
+            </button>
+            <button className="flex flex-col items-center gap-1 px-4 py-2 rounded-full text-gray-200 hover:bg-gray-50 hover:text-teal-700 transition-colors">
+              <ClipboardList className="h-5 w-5" />
+              <span className="text-xs">Records</span>
+            </button>
+            <button className="flex flex-col items-center gap-1 px-4 py-2 rounded-full text-gray-200 hover:bg-gray-50 hover:text-teal-700 transition-colors">
+              <MessageSquare className="h-5 w-5" />
+              <span className="text-xs">Messages</span>
+            </button>
+            <button 
+              onClick={() => signOut()}
+              className="flex flex-col items-center gap-1 px-4 py-2 rounded-full text-gray-200 hover:bg-red-50 hover:text-red-700 transition-colors"
+            >
+              <LogOut className="h-5 w-5" />
+              <span className="text-xs">Sign Out</span>
+            </button>
+          </div>
+        </div>
+      </nav>
     </div>
   )
 }
