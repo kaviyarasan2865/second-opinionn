@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation"
 import { useEffect } from "react"
 import { ArrowRight, Shield, Clock, Award } from "lucide-react"
+import Image from "next/image"
+import agentLogo from "../../public/agent-force-logo.png"
 
 export default function Home() {
   const router = useRouter()
@@ -132,7 +134,7 @@ export default function Home() {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-8 animate-fade-in delay-400">
               <div className="flex items-center gap-3 text-white">
                 <Shield className="w-6 h-6 text-cyan-300" />
-                <span>HIPAA Compliant</span>
+                <span>Trusted Doctors</span>
               </div>
               <div className="flex items-center gap-3 text-white">
                 <Clock className="w-6 h-6 text-cyan-300" />
@@ -172,41 +174,11 @@ export default function Home() {
       </div>
 
       {/* Footer with AgentForce branding */}
-      <div className="absolute bottom-0 left-0 right-0 py-4 bg-white/10 backdrop-blur-sm">
+      <div className="absolute bottom-0 left-0 right-0 py-4">
         <div className="container mx-auto px-4">
-          <div className="flex items-center justify-center gap-2 text-white/80">
-            <span>Powered by</span>
-            <div className="flex items-center gap-1">
-              <span className="font-semibold text-white">AgentForce</span>
-              <svg
-                className="w-5 h-5 text-cyan-300"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M12 2L2 7L12 12L22 7L12 2Z"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M2 17L12 22L22 17"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-                <path
-                  d="M2 12L12 17L22 12"
-                  stroke="currentColor"
-                  strokeWidth="2"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-            </div>
+          <div className="flex flex-col items-center justify-center gap-2">
+            <p>Powered by</p>
+            <Image src={agentLogo} alt="agentforce" width={60} height={40} className="h-10 w-40"/>
           </div>
         </div>
       </div>

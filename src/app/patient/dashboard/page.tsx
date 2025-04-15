@@ -9,13 +9,12 @@ import {
   MessageCircle,
   User,
   Bell,
-  X,
-  ChevronRight,
+
   Activity,
   Pill,
   CalendarIcon,
   FileTextIcon,
-  MessageSquare,
+
   LogOut,
   Send,
 } from "lucide-react"
@@ -30,7 +29,6 @@ interface Message {
 
 export default function PatientDashboard() {
   const { data: session } = useSession()
-  const [isChatOpen, setIsChatOpen] = useState(false)
   const [messages, setMessages] = useState<Message[]>([
     { id: "1", content: "Hello! How can I help you today?", sender: "doctor", timestamp: new Date() }
   ])
@@ -221,329 +219,176 @@ export default function PatientDashboard() {
         </div>
       </header>
 
-      {/* Sidebar and Main Content */}
-      <div className="container mx-auto px-4 py-6 flex flex-col md:flex-row gap-6">
-        {/* Sidebar */}
-        <aside className="w-full md:w-64 bg-white rounded-xl shadow-sm p-4">
-          <nav className="space-y-1">
-            {/* Custom Buttons */}
-            <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-teal-700 bg-teal-50 font-medium text-sm hover:bg-teal-100 transition-colors">
-              <Activity className="h-5 w-5" />
-              <span>Dashboard</span>
-            </button>
-            <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-gray-700 font-medium text-sm hover:bg-teal-50 hover:text-teal-700 transition-colors">
-              <CalendarIcon className="h-5 w-5" />
-              <span>Appointments</span>
-            </button>
-            <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-gray-700 font-medium text-sm hover:bg-teal-50 hover:text-teal-700 transition-colors">
-              <FileTextIcon className="h-5 w-5" />
-              <span>Medical Records</span>
-            </button>
-            <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-gray-700 font-medium text-sm hover:bg-teal-50 hover:text-teal-700 transition-colors">
-              <Pill className="h-5 w-5" />
-              <span>Medications</span>
-            </button>
-            <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-gray-700 font-medium text-sm hover:bg-teal-50 hover:text-teal-700 transition-colors">
-              <MessageSquare className="h-5 w-5" />
-              <span>Messages</span>
-            </button>
-            <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-gray-700 font-medium text-sm hover:bg-teal-50 hover:text-teal-700 transition-colors">
-              <User className="h-5 w-5" />
-              <span>Profile</span>
-            </button>
-            <hr className="my-4" />
-            <button
-              className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-red-600 font-medium text-sm hover:bg-red-50 hover:text-red-700 transition-colors"
-              onClick={() => signOut()}
-            >
-              <LogOut className="h-5 w-5" />
-              <span>Sign Out</span>
-            </button>
-          </nav>
-        </aside>
-
-        {/* Main Content */}
-        <main className="flex-1 space-y-6">
-          {/* Welcome Section */}
-          <section className="bg-gradient-to-r from-teal-500 to-cyan-600 rounded-xl p-6 text-white shadow-md">
-            <h2 className="text-2xl font-bold mb-2">Welcome back, {session?.user?.name?.split(" ")[0] || "Patient"}</h2>
-            <p className="opacity-90 mb-4">Here&apos;s a summary of your health information and upcoming appointments.</p>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
-              <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4 flex items-center gap-4">
-                <div className="bg-white/30 rounded-full p-3">
-                  <Calendar className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium opacity-90">Next Appointment</p>
-                  <p className="font-bold">{upcomingAppointments[0]?.date || "No upcoming"}</p>
-                </div>
-              </div>
-              <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4 flex items-center gap-4">
-                <div className="bg-white/30 rounded-full p-3">
-                  <FileText className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium opacity-90">Recent Reports</p>
-                  <p className="font-bold">{recentReports.length} new</p>
-                </div>
-              </div>
-              <div className="bg-white/20 backdrop-blur-sm rounded-lg p-4 flex items-center gap-4">
-                <div className="bg-white/30 rounded-full p-3">
-                  <Pill className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <p className="text-sm font-medium opacity-90">Medications</p>
-                  <p className="font-bold">{medications.length} active</p>
-                </div>
-              </div>
+      {/* Main Content */}
+      <div className="container mx-auto px-4 py-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Sidebar - Quick Info */}
+          <div className="lg:col-span-1 space-y-6">
+            {/* Welcome Card */}
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <h2 className="text-xl font-bold text-gray-800 mb-2">Welcome back, {session?.user?.name?.split(" ")[0] || "Patient"}</h2>
+              <p className="text-gray-600">How can we help you today?</p>
             </div>
-          </section>
 
-          {/* Dashboard Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Upcoming Appointments - Custom Card */}
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-              <div className="px-6 py-4 flex items-center justify-between border-b border-gray-100">
-                <h3 className="text-lg font-bold text-gray-800">Upcoming Appointments</h3>
-                <button className="text-teal-600 hover:text-teal-700 text-sm font-medium flex items-center">
-                  View All <ChevronRight className="h-4 w-4 ml-1" />
-                </button>
-              </div>
-              <div className="p-6">
-                {upcomingAppointments.length > 0 ? (
-                  <div className="space-y-4">
-                    {upcomingAppointments.map((appointment) => (
-                      <div
-                        key={appointment.id}
-                        className="flex items-start p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
-                      >
-                        <div className="bg-teal-100 rounded-full p-3 mr-4">
-                          <Calendar className="h-5 w-5 text-teal-600" />
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-medium text-gray-900">{appointment.doctor}</h4>
-                          <p className="text-sm text-gray-500">{appointment.specialty}</p>
-                          <div className="flex items-center mt-2 text-sm text-gray-600">
-                            <Calendar className="h-4 w-4 mr-1" />
-                            <span className="mr-3">{appointment.date}</span>
-                            <Clock className="h-4 w-4 mr-1" />
-                            <span>{appointment.time}</span>
-                          </div>
-                        </div>
-                        <button className="px-3 py-1 text-sm border border-teal-200 text-teal-600 rounded-md hover:bg-teal-50">
-                          Details
-                        </button>
-                      </div>
-                    ))}
+            {/* Quick Stats */}
+            <div className="bg-white rounded-xl shadow-sm p-6">
+              <h3 className="text-lg font-semibold text-gray-800 mb-4">Quick Stats</h3>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-teal-100 rounded-full p-2">
+                      <Calendar className="h-5 w-5 text-teal-600" />
+                    </div>
+                    <span className="text-gray-600">Next Appointment</span>
                   </div>
-                ) : (
-                  <p className="text-gray-500 text-center py-6">No upcoming appointments</p>
-                )}
-              </div>
-            </div>
-
-            {/* Recent Medical Reports - Custom Card */}
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden">
-              <div className="px-6 py-4 flex items-center justify-between border-b border-gray-100">
-                <h3 className="text-lg font-bold text-gray-800">Recent Medical Reports</h3>
-                <button className="text-teal-600 hover:text-teal-700 text-sm font-medium flex items-center">
-                  View All <ChevronRight className="h-4 w-4 ml-1" />
-                </button>
-              </div>
-              <div className="p-6">
-                {recentReports.length > 0 ? (
-                  <div className="space-y-4">
-                    {recentReports.map((report) => (
-                      <div
-                        key={report.id}
-                        className="flex items-start p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
-                      >
-                        <div className="bg-blue-100 rounded-full p-3 mr-4">
-                          <FileText className="h-5 w-5 text-blue-600" />
-                        </div>
-                        <div className="flex-1">
-                          <h4 className="font-medium text-gray-900">{report.title}</h4>
-                          <p className="text-sm text-gray-500">{report.date}</p>
-                          <div className="flex items-center mt-2">
-                            <span
-                              className={`text-xs px-2 py-1 rounded-full ${
-                                report.status === "Reviewed"
-                                  ? "bg-green-100 text-green-700"
-                                  : "bg-yellow-100 text-yellow-700"
-                              }`}
-                            >
-                              {report.status}
-                            </span>
-                          </div>
-                        </div>
-                        <button className="px-3 py-1 text-sm border border-blue-200 text-blue-600 rounded-md hover:bg-blue-50">
-                          View
-                        </button>
-                      </div>
-                    ))}
+                  <span className="font-medium">{upcomingAppointments[0]?.date || "No upcoming"}</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-blue-100 rounded-full p-2">
+                      <FileText className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <span className="text-gray-600">Recent Reports</span>
                   </div>
-                ) : (
-                  <p className="text-gray-500 text-center py-6">No recent reports</p>
-                )}
+                  <span className="font-medium">{recentReports.length} new</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-purple-100 rounded-full p-2">
+                      <Pill className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <span className="text-gray-600">Medications</span>
+                  </div>
+                  <span className="font-medium">{medications.length} active</span>
+                </div>
               </div>
             </div>
 
-            {/* Medications - Custom Card */}
-            <div className="bg-white rounded-xl shadow-sm overflow-hidden lg:col-span-2">
-              <div className="px-6 py-4 flex items-center justify-between border-b border-gray-100">
-                <h3 className="text-lg font-bold text-gray-800">Current Medications</h3>
-                <button className="text-teal-600 hover:text-teal-700 text-sm font-medium flex items-center">
-                  Manage Medications <ChevronRight className="h-4 w-4 ml-1" />
+            {/* Navigation */}
+            <div className="bg-white rounded-xl shadow-sm p-4">
+              <nav className="space-y-1">
+                <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-teal-700 bg-teal-50 font-medium text-sm hover:bg-teal-100 transition-colors">
+                  <Activity className="h-5 w-5" />
+                  <span>Dashboard</span>
                 </button>
+                <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-gray-700 font-medium text-sm hover:bg-teal-50 hover:text-teal-700 transition-colors">
+                  <CalendarIcon className="h-5 w-5" />
+                  <span>Appointments</span>
+                </button>
+                <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-gray-700 font-medium text-sm hover:bg-teal-50 hover:text-teal-700 transition-colors">
+                  <FileTextIcon className="h-5 w-5" />
+                  <span>Medical Records</span>
+                </button>
+                <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-gray-700 font-medium text-sm hover:bg-teal-50 hover:text-teal-700 transition-colors">
+                  <Pill className="h-5 w-5" />
+                  <span>Medications</span>
+                </button>
+                <button className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-gray-700 font-medium text-sm hover:bg-teal-50 hover:text-teal-700 transition-colors">
+                  <User className="h-5 w-5" />
+                  <span>Profile</span>
+                </button>
+                <button
+                  className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-red-600 font-medium text-sm hover:bg-red-50 hover:text-red-700 transition-colors"
+                  onClick={() => signOut()}
+                >
+                  <LogOut className="h-5 w-5" />
+                  <span>Sign Out</span>
+                </button>
+              </nav>
+            </div>
+          </div>
+
+          {/* Main Chat Interface */}
+          <div className="lg:col-span-2">
+            <div className="bg-white rounded-xl shadow-sm overflow-hidden h-[calc(100vh-12rem)] flex flex-col">
+              {/* Chat Header */}
+              <div className="bg-gradient-to-r from-teal-600 to-cyan-600 p-4 text-white flex justify-between items-center">
+                <div className="flex items-center gap-2">
+                  <div className="bg-white/20 rounded-full p-2">
+                    <MessageCircle className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-medium">Medical Assistant</h3>
+                    <p className="text-xs opacity-80">Powered by AgentForce</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs bg-white/20 px-2 py-1 rounded-full">Online</span>
+                </div>
               </div>
-              <div className="p-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {medications.map((medication) => (
-                    <div
-                      key={medication.id}
-                      className="p-4 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors"
-                    >
-                      <div className="flex items-center mb-3">
-                        <div className="bg-purple-100 rounded-full p-2 mr-3">
-                          <Pill className="h-4 w-4 text-purple-600" />
+
+              {/* Chat Messages */}
+              <div className="flex-1 p-4 overflow-y-auto bg-gray-50">
+                <div className="space-y-4">
+                  {messages.map((message) => (
+                    <div key={message.id} className={`flex ${message.sender === "patient" ? "justify-end" : "justify-start"}`}>
+                      <div
+                        className={`max-w-[80%] rounded-lg p-3 ${
+                          message.sender === "patient"
+                            ? "bg-teal-600 text-white"
+                            : "bg-white border border-gray-200 text-gray-800"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 mb-2">
+                          <User className="w-4 h-4" />
+                          <span className="font-medium">
+                            {message.sender === "patient" ? "You" : "Doctor"}
+                          </span>
+                          <Clock className="w-4 h-4 ml-auto" />
+                          <span className="text-sm opacity-80">
+                            {message.timestamp.toLocaleTimeString()}
+                          </span>
                         </div>
-                        <h4 className="font-medium text-gray-900">{medication.name}</h4>
-                      </div>
-                      <div className="space-y-2 text-sm text-gray-600">
-                        <p>
-                          <span className="font-medium">Dosage:</span> {medication.dosage}
-                        </p>
-                        <p>
-                          <span className="font-medium">Frequency:</span> {medication.frequency}
-                        </p>
-                        <p>
-                          <span className="font-medium">Refill Date:</span> {medication.refillDate}
-                        </p>
-                      </div>
-                      <div className="mt-3">
-                        <p className="text-xs text-gray-500 mb-1">Refill Status</p>
-                        {/* Custom Progress Bar */}
-                        <div className="flex items-center gap-2">
-                          <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
-                            <div
-                              className="h-full bg-teal-500 rounded-full"
-                              style={{ width: `${medication.progress}%` }}
-                            ></div>
-                          </div>
-                          <span className="text-xs text-gray-600">{medication.progress}%</span>
-                        </div>
+                        <p>{message.content}</p>
                       </div>
                     </div>
                   ))}
+                  {isLoading && (
+                    <div className="flex justify-start">
+                      <div className="max-w-[80%] rounded-lg p-3 bg-white border border-gray-200">
+                        <div className="flex space-x-2">
+                          <div className="h-2 w-2 rounded-full bg-gray-300 animate-bounce"></div>
+                          <div
+                            className="h-2 w-2 rounded-full bg-gray-300 animate-bounce"
+                            style={{ animationDelay: "0.2s" }}
+                          ></div>
+                          <div
+                            className="h-2 w-2 rounded-full bg-gray-300 animate-bounce"
+                            style={{ animationDelay: "0.4s" }}
+                          ></div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  <div ref={messagesEndRef} />
                 </div>
               </div>
-            </div>
-          </div>
-        </main>
-      </div>
 
-      {/* Floating Chat Icon */}
-      <div className="fixed bottom-6 right-6 z-50">
-        <button
-          onClick={() => setIsChatOpen(true)}
-          className={`bg-teal-600 hover:bg-teal-700 text-white rounded-full p-4 shadow-lg transition-all ${
-            isChatOpen ? "scale-0 opacity-0" : "scale-100 opacity-100"
-          }`}
-          style={{ animation: isChatOpen ? "" : "pulse 2s infinite" }}
-        >
-          <MessageCircle className="h-6 w-6" />
-        </button>
-      </div>
-
-      {/* Chat Interface */}
-      {isChatOpen && (
-        <div className="fixed bottom-6 right-6 w-80 md:w-96 bg-white rounded-xl shadow-2xl z-50 flex flex-col overflow-hidden border border-gray-200">
-          {/* Chat Header */}
-          <div className="bg-gradient-to-r from-teal-600 to-cyan-600 p-4 text-white flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <div className="bg-white/20 rounded-full p-2">
-                <MessageCircle className="h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="font-medium">Medical Assistant</h3>
-                <p className="text-xs opacity-80">Online</p>
-              </div>
-            </div>
-            <button onClick={() => setIsChatOpen(false)} className="text-white/80 hover:text-white">
-              <X className="h-5 w-5" />
-            </button>
-          </div>
-
-          {/* Chat Messages */}
-          <div className="flex-1 p-4 overflow-y-auto max-h-96 bg-gray-50">
-            <div className="space-y-4">
-              {messages.map((message) => (
-                <div key={message.id} className={`flex ${message.sender === "patient" ? "justify-end" : "justify-start"}`}>
-                  <div
-                    className={`max-w-[80%] rounded-lg p-3 ${
-                      message.sender === "patient"
-                        ? "bg-teal-600 text-white"
-                        : "bg-white border border-gray-200 text-gray-800"
-                    }`}
+              {/* Chat Input */}
+              <form onSubmit={handleChatSubmit} className="p-4 border-t border-gray-200 bg-white">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={input}
+                    onChange={(e) => setInput(e.target.value)}
+                    placeholder="Type your message..."
+                    className="flex-1 px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
+                    disabled={isLoading}
+                  />
+                  <button
+                    type="submit"
+                    className="rounded-full bg-teal-600 hover:bg-teal-700 text-white p-3 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    disabled={isLoading || !input.trim()}
                   >
-                    <div className="flex items-center gap-2 mb-2">
-                      <User className="w-4 h-4" />
-                      <span className="font-medium">
-                        {message.sender === "patient" ? "You" : "Doctor"}
-                      </span>
-                      <Clock className="w-4 h-4 ml-auto" />
-                      <span className="text-sm opacity-80">
-                        {message.timestamp.toLocaleTimeString()}
-                      </span>
-                    </div>
-                    <p>{message.content}</p>
-                  </div>
+                    <Send className="h-5 w-5" />
+                    <span className="sr-only">Send</span>
+                  </button>
                 </div>
-              ))}
-              {isLoading && (
-                <div className="flex justify-start">
-                  <div className="max-w-[80%] rounded-lg p-3 bg-white border border-gray-200">
-                    <div className="flex space-x-2">
-                      <div className="h-2 w-2 rounded-full bg-gray-300 animate-bounce"></div>
-                      <div
-                        className="h-2 w-2 rounded-full bg-gray-300 animate-bounce"
-                        style={{ animationDelay: "0.2s" }}
-                      ></div>
-                      <div
-                        className="h-2 w-2 rounded-full bg-gray-300 animate-bounce"
-                        style={{ animationDelay: "0.4s" }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
+              </form>
             </div>
           </div>
-
-          {/* Chat Input */}
-          <form onSubmit={handleChatSubmit} className="p-3 border-t border-gray-200 bg-white">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Type your message..."
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                disabled={isLoading}
-              />
-              <button
-                type="submit"
-                className="rounded-full bg-teal-600 hover:bg-teal-700 text-white p-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={isLoading || !input.trim()}
-              >
-                <Send className="h-5 w-5" />
-                <span className="sr-only">Send</span>
-              </button>
-            </div>
-          </form>
         </div>
-      )}
+      </div>
     </div>
   )
 }

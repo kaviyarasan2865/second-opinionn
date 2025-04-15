@@ -1,12 +1,11 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import {  useEffect } from "react"
 import { useSession, signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import {
-  MessageCircle,
+
   Bell,
-  X,
   ChevronRight,
   Activity,
   Users,
@@ -17,30 +16,16 @@ import {
   LogOut,
   CheckCircle,
   AlertCircle,
-  BarChart,
-  Send,
-  User,
-  Clock,
+  BarChart
 } from "lucide-react"
 import Image from 'next/image'
 
-interface Message {
-  id: string
-  content: string
-  sender: "doctor" | "patient"
-  timestamp: Date
-}
+
 
 export default function DoctorDashboard() {
   const { data: session } = useSession()
   const router = useRouter()
-  const [isChatOpen, setIsChatOpen] = useState(false)
-  const [messages, setMessages] = useState<Message[]>([
-    { id: "1", content: "Hello Dr. How can I assist you today?", sender: "doctor", timestamp: new Date() },
-  ])
-  const [input, setInput] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const messagesEndRef = useRef<HTMLDivElement>(null)
+ 
 
   // Redirect if not authenticated or not a doctor
   useEffect(() => {
@@ -51,10 +36,7 @@ export default function DoctorDashboard() {
     }
   }, [session, router])
 
-  // Scroll to bottom of chat when messages change
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }, [messages])
+
 
   // Add background animations
   useEffect(() => {
@@ -107,35 +89,7 @@ export default function DoctorDashboard() {
     }
   }, [])
 
-  // Mock function to handle chat submission
-  const handleChatSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!input.trim()) return
-
-    // Add user message
-    const userMessage: Message = {
-      id: Date.now().toString(),
-      content: input.trim(),
-      sender: "patient",
-      timestamp: new Date(),
-    }
-    setMessages((prev) => [...prev, userMessage])
-    setInput("")
-    setIsLoading(true)
-
-    // Simulate API call to agentForce
-    setTimeout(() => {
-      const assistantMessage: Message = {
-        id: Date.now().toString(),
-        content: "I'll relay this message to the patient. Is there anything else you'd like me to assist with?",
-        sender: "doctor",
-        timestamp: new Date(),
-      }
-      setMessages((prev) => [...prev, assistantMessage])
-      setIsLoading(false)
-    }, 1000)
-  }
-
+ 
   // Mock data for doctor dashboard
   const todayAppointments = [
     {
@@ -606,108 +560,8 @@ export default function DoctorDashboard() {
         </main>
       </div>
 
-      {/* Floating Chat Icon */}
-      <div className="fixed bottom-6 right-6 z-50">
-        <button
-          onClick={() => setIsChatOpen(true)}
-          className={`bg-teal-600 hover:bg-teal-700 text-white rounded-full p-4 shadow-lg transition-all ${
-            isChatOpen ? "scale-0 opacity-0" : "scale-100 opacity-100"
-          }`}
-          style={{ animation: isChatOpen ? "" : "pulse 2s infinite" }}
-        >
-          <MessageCircle className="h-6 w-6" />
-        </button>
-      </div>
 
-      {/* Chat Interface */}
-      {isChatOpen && (
-        <div className="fixed bottom-6 right-6 w-80 md:w-96 bg-white rounded-xl shadow-2xl z-50 flex flex-col overflow-hidden border border-gray-200">
-          {/* Chat Header */}
-          <div className="bg-gradient-to-r from-teal-600 to-cyan-600 p-4 text-white flex justify-between items-center">
-            <div className="flex items-center gap-2">
-              <div className="bg-white/20 rounded-full p-2">
-                <MessageCircle className="h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="font-medium">Patient Assistant</h3>
-                <p className="text-xs opacity-80">Online</p>
-              </div>
-            </div>
-            <button onClick={() => setIsChatOpen(false)} className="text-white/80 hover:text-white">
-              <X className="h-5 w-5" />
-            </button>
-          </div>
 
-          {/* Chat Messages */}
-          <div className="flex-1 p-4 overflow-y-auto max-h-96 bg-gray-50">
-            <div className="space-y-4">
-              {messages.map((message) => (
-                <div key={message.id} className={`flex ${message.sender === "doctor" ? "justify-end" : "justify-start"}`}>
-                  <div
-                    className={`max-w-[80%] rounded-lg p-3 ${
-                      message.sender === "doctor"
-                        ? "bg-teal-600 text-white"
-                        : "bg-white border border-gray-200 text-gray-800"
-                    }`}
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <User className="w-4 h-4" />
-                      <span className="font-medium">
-                        {message.sender === "doctor" ? "You" : "Patient"}
-                      </span>
-                      <Clock className="w-4 h-4 ml-auto" />
-                      <span className="text-sm opacity-80">
-                        {message.timestamp.toLocaleTimeString()}
-                      </span>
-                    </div>
-                    <p>{message.content}</p>
-                  </div>
-                </div>
-              ))}
-              {isLoading && (
-                <div className="flex justify-start">
-                  <div className="max-w-[80%] rounded-lg p-3 bg-white border border-gray-200">
-                    <div className="flex space-x-2">
-                      <div className="h-2 w-2 rounded-full bg-gray-300 animate-bounce"></div>
-                      <div
-                        className="h-2 w-2 rounded-full bg-gray-300 animate-bounce"
-                        style={{ animationDelay: "0.2s" }}
-                      ></div>
-                      <div
-                        className="h-2 w-2 rounded-full bg-gray-300 animate-bounce"
-                        style={{ animationDelay: "0.4s" }}
-                      ></div>
-                    </div>
-                  </div>
-                </div>
-              )}
-              <div ref={messagesEndRef} />
-            </div>
-          </div>
-
-          {/* Chat Input */}
-          <form onSubmit={handleChatSubmit} className="p-3 border-t border-gray-200 bg-white">
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={input}
-                onChange={(e) => setInput(e.target.value)}
-                placeholder="Type your message to patient..."
-                className="flex-1 px-4 py-2 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent"
-                disabled={isLoading}
-              />
-              <button
-                type="submit"
-                className="rounded-full bg-teal-600 hover:bg-teal-700 text-white p-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                disabled={isLoading || !input.trim()}
-              >
-                <Send className="h-5 w-5" />
-                <span className="sr-only">Send</span>
-              </button>
-            </div>
-          </form>
-        </div>
-      )}
     </div>
   )
 }
