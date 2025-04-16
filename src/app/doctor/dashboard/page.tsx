@@ -375,10 +375,10 @@ export default function DoctorDashboard() {
 
           {/* Dashboard Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Today's Appointments - Custom Card */}
+            {/* Appointments - Custom Card */}
             <div className="bg-white rounded-xl shadow-sm overflow-hidden">
               <div className="px-6 py-4 flex items-center justify-between border-b border-gray-100">
-                <h3 className="text-lg font-bold text-gray-800">Today&apos;s Appointments</h3>
+                <h3 className="text-lg font-bold text-gray-800">Appointments</h3>
                 <button className="text-teal-600 hover:text-teal-700 text-sm font-medium flex items-center">
                   View Schedule <ChevronRight className="h-4 w-4 ml-1" />
                 </button>
@@ -407,7 +407,16 @@ export default function DoctorDashboard() {
                         <div className="flex-1">
                           <div className="flex items-center justify-between">
                             <h4 className="font-medium text-gray-900">{appointment.patient}</h4>
-                            <span className="text-sm text-gray-600">{appointment.time} on {appointment.date}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm text-gray-600">{appointment.time} on {appointment.date}</span>
+                              <button 
+                                onClick={() => router.push(`/chat/${session?.user?.id}/${appointment.patientId}`)}
+                                className="p-2 text-teal-600 hover:text-teal-700 hover:bg-teal-50 rounded-full transition-colors"
+                                title="Chat with patient"
+                              >
+                                <MessageSquare className="h-4 w-4" />
+                              </button>
+                            </div>
                           </div>
                           <div className="flex items-center justify-between mt-1">
                             <p className="text-sm text-gray-500">
