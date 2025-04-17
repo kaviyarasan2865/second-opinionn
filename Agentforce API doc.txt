@@ -1,0 +1,72 @@
+
+1.=>Session creation:
+API - {{NEXT_PUBLIC_SF_API_HOST}}/einstein/ai-agent/v1/agents/{{NEXT_PUBLIC_SF_AGENT_ID}}/sessions
+
+body params:
+{
+    "externalSessionKey": "{{$guid}}",
+    "instanceConfig": {
+        "endpoint": "{{sfOrgDomain}}"
+    },
+    "tz": "America/Los_Angeles",
+    "variables": [
+        {
+            "name": "$Context.EndUserLanguage",
+            "type": "Text",
+            "value": "en_US"
+        }
+    ],
+    "featureSupport": "Streaming",
+    "streamingCapabilities": {
+        "chunkTypes": [
+            "Text"
+        ]
+    },
+    "bypassUser": true
+}
+
+
+Auth type - OAuth 2.0
+
+Have to create new access token and place it .
+
+Configure New Token
+Token Name: access_token
+Grant type: Client Credentials
+Access Token URL: {{NEXT_PUBLIC_SF_ORG_DOMAIN}}/services/oauth2/token
+Client ID:{{NEXT_PUBLIC_SF_CLIENT_ID}}
+Client Secret: {{NEXT_PUBLIC_SF_CLIENT_SECRET}}
+Scopee.g. read:org
+Client Authentication: Send as Basic Auth header
+
+
+
+
+
+
+////////////////////////////////////////////////
+
+2. => {{NEXT_PUBLIC_SF_API_HOST}}/einstein/ai-agent/v1/sessions/{{_sessionId}}/messages
+
+body params:
+{
+    "message": {
+        "sequenceId": {{$timestamp}},
+        "type": "Text",
+        "text": "i m available from 8.00am to 12.00 pm"
+    },
+    "variables": []
+}
+
+Configure New Token
+Token Name: access_token
+Grant type: Client Credentials
+Access Token URL: {{NEXT_PUBLIC_SF_ORG_DOMAIN}}/services/oauth2/token
+Client ID:{{NEXT_PUBLIC_SF_CLIENT_ID}}
+Client Secret: {{NEXT_PUBLIC_SF_CLIENT_SECRET}}
+Scopee.g. read:org
+Client Authentication: Send as Basic Auth header
+
+
+
+

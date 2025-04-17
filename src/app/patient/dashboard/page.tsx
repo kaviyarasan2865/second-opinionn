@@ -64,6 +64,13 @@ interface Medication {
   color?: string
 }
 
+// Add AgentForce session interface
+interface AgentForceSession {
+  sessionId: string;
+  externalSessionKey: string;
+  accessToken: string;
+}
+
 export default function PatientDashboard() {
   const { data: session } = useSession()
   const router = useRouter()
@@ -76,6 +83,7 @@ export default function PatientDashboard() {
   const [activePanel, setActivePanel] = useState<string | null>(null)
   const [showAttachmentOptions, setShowAttachmentOptions] = useState(false)
   const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null)
+  const [agentForceSession, setAgentForceSession] = useState<AgentForceSession | null>(null)
   const [quickResponses] = useState([
     "How do I take my medication?",
     "I need to reschedule my appointment",
@@ -221,12 +229,37 @@ export default function PatientDashboard() {
     }
   }
 
-  // Mock function to handle chat submission
-  const handleChatSubmit = async (e: React.FormEvent | null, quickResponse?: string) => {
-    if (e) e.preventDefault()
+  // Initialize AgentForce session
+  useEffect(() => {
+    const initializeAgentForceSession = async () => {
+      try {
+        const response = await fetch('/api/agentforce/session', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        });
 
-    const messageText = quickResponse || input.trim()
-    if (!messageText) return
+        if (!response.ok) {
+          throw new Error('Failed to initialize AgentForce session');
+        }
+
+        const data = await response.json();
+        setAgentForceSession(data);
+      } catch (error) {
+        console.error('Error initializing AgentForce session:', error);
+      }
+    };
+
+    initializeAgentForceSession();
+  }, []);
+
+  // Handle chat submission with AgentForce
+  const handleChatSubmit = async (e: React.FormEvent | null, quickResponse?: string) => {
+    if (e) e.preventDefault();
+
+    const messageText = quickResponse || input.trim();
+    if (!messageText || !agentForceSession) return;
 
     // Add user message
     const newUserMessage: Message = {
@@ -235,57 +268,81 @@ export default function PatientDashboard() {
       sender: "patient",
       timestamp: new Date(),
       status: "sent",
-    }
-    setMessages((prevMessages) => [...prevMessages, newUserMessage])
-    setInput("")
-    setIsLoading(true)
+    };
+    setMessages((prevMessages) => [...prevMessages, newUserMessage]);
+    setInput("");
+    setIsLoading(true);
 
     // Update message status after a short delay
     setTimeout(() => {
       setMessages((prevMessages) =>
         prevMessages.map((msg) => (msg.id === newUserMessage.id ? { ...msg, status: "delivered" } : msg)),
-      )
-    }, 500)
+      );
+    }, 500);
 
-    // Simulate typing indicator from doctor
-    setTimeout(() => {
-      const typingMessage: Message = {
-        id: (Date.now() + 1).toString(),
-        content: "",
-        sender: "doctor",
-        timestamp: new Date(),
-        isTyping: true,
+    // Show typing indicator
+    const typingMessage: Message = {
+      id: (Date.now() + 1).toString(),
+      content: "",
+      sender: "doctor",
+      timestamp: new Date(),
+      isTyping: true,
+    };
+    setMessages((prevMessages) => [...prevMessages, typingMessage]);
+
+    try {
+      // Send message to AgentForce through our API
+      const response = await fetch('/api/agentforce/message', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          sessionId: agentForceSession.sessionId,
+          message: messageText,
+          accessToken: agentForceSession.accessToken,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to send message to AgentForce');
       }
-      setMessages((prevMessages) => [...prevMessages, typingMessage])
-    }, 1000)
 
-    // Simulate API call to agentForce and remove typing indicator
-    setTimeout(() => {
-      setMessages((prevMessages) => prevMessages.filter((msg) => !msg.isTyping))
+      const data = await response.json();
+      console.log('Backend API Response:', JSON.stringify(data, null, 2));
+      
+      // Remove typing indicator
+      setMessages((prevMessages) => prevMessages.filter((msg) => !msg.isTyping));
 
-      const responses = [
-        "Thank you for your message. I'll review your inquiry and respond shortly.",
-        "I understand your concern. Let me check your records and get back to you.",
-        "I've received your message. A healthcare professional will follow up on this matter.",
-        "Thanks for reaching out. I'm analyzing your information to provide the most accurate guidance.",
-      ]
-
-      const responseIndex = Math.floor(Math.random() * responses.length)
-
+      // Add AgentForce response
+      const responseText = data?.messages?.[0]?.message || 
+                          "I'm sorry, I couldn't process your request. Please try again.";
+      
       const newAssistantMessage: Message = {
         id: (Date.now() + 2).toString(),
-        content: responses[responseIndex],
+        content: responseText,
         sender: "doctor",
         timestamp: new Date(),
         status: "read",
-      }
-      setMessages((prevMessages) => [...prevMessages, newAssistantMessage])
-      setIsLoading(false)
-
-      // Focus back on input after response
-      chatInputRef.current?.focus()
-    }, 3500)
-  }
+      };
+      setMessages((prevMessages) => [...prevMessages, newAssistantMessage]);
+    } catch (error) {
+      console.error('Error sending message to AgentForce:', error);
+      // Remove typing indicator and show error message
+      setMessages((prevMessages) => prevMessages.filter((msg) => !msg.isTyping));
+      const errorMessage: Message = {
+        id: (Date.now() + 2).toString(),
+        content: "Sorry, I'm having trouble connecting to the medical assistant. Please try again later.",
+        sender: "doctor",
+        timestamp: new Date(),
+        status: "read",
+      };
+      setMessages((prevMessages) => [...prevMessages, errorMessage]);
+    } finally {
+      setIsLoading(false);
+      chatInputRef.current?.focus();
+    }
+  };
 
   // Toggle profile menu
   const toggleProfileMenu = () => {
