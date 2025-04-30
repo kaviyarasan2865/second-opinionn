@@ -1,36 +1,189 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+    # Second Opinion - Medical Consultation Platform
 
-## Getting Started
+Second Opinion is a modern web application built with Next.js that enables patients to seek second medical opinions from healthcare professionals. The platform facilitates secure communication between patients and doctors, allowing for better healthcare decisions.
 
-First, run the development server:
+## :building_construction: Architecture
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+[Add your architecture diagram here]
+
+The application follows a modern web architecture with the following key components:
+
+- **Frontend**: Next.js 15.3.0 with React 19
+- **Backend**: Next.js API Routes
+- **Database**: MongoDB with Mongoose
+- **Authentication**: NextAuth.js
+- **Styling**: Tailwind CSS
+- **Animations**: Framer Motion
+- **AI Integration**: **AgentForce Agent** for intelligent assistance
+
+## :rocket: Features
+
+- Secure user authentication and authorization
+- Patient-doctor communication platform
+- Medical consultation management
+- Real-time updates and notifications
+- Responsive and modern UI
+- Type-safe development with TypeScript
+- **:robot_face: AgentForce AI Agent Integration**
+  - Intelligent patient-doctor matching
+  - Automated consultation scheduling
+  - Smart medical record analysis
+  - AI-powered follow-up recommendations
+
+## :arrows_counterclockwise: Project Flow
+
+### User Journey
+
+1. **Registration & Authentication**
+   - Users (patients and doctors) register with their credentials
+   - Email verification process
+   - Secure login with NextAuth.js
+   - **AgentForce agent** assists in profile completion
+
+2. **Patient Flow**
+   - Create and manage medical profiles
+   - Upload medical records and reports
+   - **AgentForce agent** analyzes medical records
+   - Search for available doctors
+   - **AgentForce agent** suggests relevant doctors based on medical history
+   - Request second opinions
+   - Schedule consultations
+   - Track consultation status
+   - Receive and review medical opinions
+   - **AgentForce agent** provides follow-up recommendations
+
+3. **Doctor Flow**
+   - Complete professional profile
+   - Set availability and consultation preferences
+   - **AgentForce agent** optimizes schedule management
+   - Review patient requests
+   - Access patient medical records
+   - **AgentForce agent** assists in medical record analysis
+   - Provide second opinions
+   - Schedule and conduct consultations
+   - Update consultation status
+   - **AgentForce agent** generates consultation summaries
+
+4. **Consultation Process**
+   - Initial request submission
+   - **AgentForce agent** pre-screens requests
+   - Doctor acceptance/rejection
+   - Scheduling and confirmation
+   - Consultation session
+   - Opinion submission
+   - Follow-up communication
+   - **AgentForce agent** manages follow-up care
+
+### System Flow
+
+1. **Data Flow**
+   - User data → MongoDB database
+   - Medical records → Secure storage
+   - Real-time updates → WebSocket connections
+   - Authentication → NextAuth.js session management
+   - **AgentForce agent** → AI processing pipeline
+
+2. **Security Flow**
+   - Request validation → API middleware
+   - Authentication check → Protected routes
+   - Data encryption → Secure transmission
+   - Session management → Secure cookies
+   - **AgentForce agent** → Secure AI processing
+
+3. **Integration Flow**
+   - Frontend ↔ Backend API communication
+   - Database ↔ Application server
+   - External services ↔ API endpoints
+   - Real-time updates ↔ WebSocket server
+   - **AgentForce agent** ↔ AI service integration
+
+## :hammer_and_wrench: Tech Stack
+
+- **Framework**: Next.js 15.3.0
+- **Language**: TypeScript
+- **Database**: MongoDB
+- **Authentication**: NextAuth.js
+- **UI Components**: React 19
+- **Styling**: Tailwind CSS
+- **Animations**: Framer Motion
+- **Icons**: Lucide React
+- **Security**: bcryptjs for password hashing
+- **AI Integration**: **AgentForce Agent**
+
+## :clipboard: Prerequisites
+
+Before running the project, ensure you have:
+
+- Node.js (Latest LTS version recommended)
+- MongoDB instance (local or cloud)
+- Git
+
+## :rocket: Getting Started
+
+1. **Clone the repository**
+   ```bash
+   git clone [your-repository-url]
+   cd second-opinionn
+   ```
+
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables**
+   Create a `.env.local` file in the root directory with the following variables:
+   ```
+   MONGODB_URI=your_mongodb_connection_string
+   NEXTAUTH_SECRET=your_nextauth_secret
+   NEXTAUTH_URL=http://localhost:3000
+   ```
+
+4. **Run the development server**
+   ```bash
+   npm run dev
+   ```
+
+5. **Build for production**
+   ```bash
+   npm run build
+   npm start
+   ```
+
+## :file_folder: Project Structure
+
+```
+src/
+├── app/          # Next.js app router pages and API routes
+├── components/   # Reusable React components
+├── lib/         # Utility functions and configurations
+├── models/      # MongoDB models
+├── providers/   # Context providers
+├── schemas/     # Data validation schemas
+└── types/       # TypeScript type definitions
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## :lock: Security
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Authentication handled by NextAuth.js
+- Password hashing using bcryptjs
+- Protected API routes
+- Secure session management
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## :test_tube: Development
 
-## Learn More
+- **Linting**: `npm run lint`
+- **Type Checking**: Built-in TypeScript checking
+- **Formatting**: ESLint configuration included
 
-To learn more about Next.js, take a look at the following resources:
+## :memo: License
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+[Add your license information here]
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## :busts_in_silhouette: Contributing
 
-## Deploy on Vercel
+[Add contribution guidelines here]
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## :telephone_receiver: Support
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+[Add support information here]
