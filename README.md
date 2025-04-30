@@ -2,7 +2,8 @@
 
 Second Opinion is a modern web application built with Next.js that enables patients to seek second medical opinions from healthcare professionals. The platform facilitates secure communication between patients and doctors, allowing for better healthcare decisions.
 
-try it out [here]( it out [here](https://second-opinionn.vercel.app))
+Try it out [here](https://second-opinionn.vercel.app).
+
 ## :building_construction: Architecture
 
 ![Screenshot](./public/WhatsApp%20Image%202025-04-30%20at%2017.40.45_c8f90142.jpg)
