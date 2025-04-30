@@ -532,7 +532,7 @@ export default function Home() {
               <div className="relative z-10 rounded-xl overflow-hidden border-2 border-white/20 shadow-2xl">
                 <video
                   className="w-full h-auto max-h-[300px] object-cover"
-                  src="/video/second-opinion.mp4"
+                  src="/video/landing.mp4"
                   autoPlay
                   muted
                   loop
