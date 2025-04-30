@@ -14,6 +14,8 @@ import {
   ThumbsUp,
   Check,
   Send,
+  Loader2,
+  StopCircle,
 } from "lucide-react"
 
 interface Message {
@@ -57,10 +59,19 @@ export default function MedicalAssistantModal({
     "What are my test results?",
     "I'm experiencing side effects",
   ])
-
+  
+  // Voice recording states
+  const [isRecording, setIsRecording] = useState(false)
+  const [recordingTime, setRecordingTime] = useState(0)
+  const [recordingTimer, setRecordingTimer] = useState<NodeJS.Timeout | null>(null)
+  const [, setAudioBlob] = useState<Blob | null>(null)
+  const [isTranscribing, setIsTranscribing] = useState(false)
+  
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const chatInputRef = useRef<HTMLInputElement>(null)
   const modalRef = useRef<HTMLDivElement>(null)
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
+  const audioChunksRef = useRef<Blob[]>([])
 
   // Initialize styles when the component mounts
   useEffect(() => {
@@ -135,6 +146,25 @@ export default function MedicalAssistantModal({
     .modal-slide-up {
       animation: slideUp 0.4s ease-out forwards;
     }
+    
+    @keyframes recording-pulse {
+      0% {
+        transform: scale(1);
+        opacity: 1;
+      }
+      50% {
+        transform: scale(1.1);
+        opacity: 0.8;
+      }
+      100% {
+        transform: scale(1);
+        opacity: 1;
+      }
+    }
+    
+    .recording-pulse {
+      animation: recording-pulse 1.5s infinite;
+    }
   `
     document.head.appendChild(style)
     return () => {
@@ -190,6 +220,18 @@ export default function MedicalAssistantModal({
     }
   }, [isOpen]);
 
+  // Clean up recording when component unmounts
+  useEffect(() => {
+    return () => {
+      if (mediaRecorderRef.current) {
+        mediaRecorderRef.current.stop();
+      }
+      if (recordingTimer) {
+        clearInterval(recordingTimer);
+      }
+    };
+  }, [recordingTimer]);
+
   // Handle typing indicator
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInput(e.target.value)
@@ -207,6 +249,123 @@ export default function MedicalAssistantModal({
       setTypingTimeout(timeout)
     }
   }
+
+  // Format recording time (mm:ss)
+  const formatRecordingTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const secs = (seconds % 60).toString().padStart(2, '0');
+    return `${mins}:${secs}`;
+  };
+
+  // Start voice recording
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      
+      audioChunksRef.current = [];
+      const mediaRecorder = new MediaRecorder(stream);
+      
+      mediaRecorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+      
+      mediaRecorder.onstop = () => {
+        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' });
+        setAudioBlob(audioBlob);
+        
+        // Auto-transcribe
+        transcribeAudio(audioBlob);
+        
+        // Stop all audio tracks
+        stream.getTracks().forEach(track => track.stop());
+      };
+      
+      mediaRecorderRef.current = mediaRecorder;
+      mediaRecorder.start();
+      setIsRecording(true);
+      
+      // Start recording timer
+      let seconds = 0;
+      const timer = setInterval(() => {
+        seconds++;
+        setRecordingTime(seconds);
+        
+        // Auto-stop after 60 seconds
+        if (seconds >= 60) {
+          stopRecording();
+        }
+      }, 1000);
+      
+      setRecordingTimer(timer);
+      
+    } catch (error) {
+      console.error('Error starting recording:', error);
+      alert('Unable to access microphone. Please check your permissions.');
+    }
+  };
+
+  // Stop voice recording
+  const stopRecording = () => {
+    if (mediaRecorderRef.current && isRecording) {
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      
+      if (recordingTimer) {
+        clearInterval(recordingTimer);
+        setRecordingTimer(null);
+      }
+    }
+  };
+
+  // Transcribe audio using a speech-to-text service
+  const transcribeAudio = async (audioBlob: Blob) => {
+    setIsTranscribing(true);
+    
+    try {
+      // Create a FormData object to send the audio file
+      const formData = new FormData();
+      formData.append('audio', audioBlob, 'recording.webm');
+      
+      // Send to speech-to-text API
+      const response = await fetch('/api/speech-to-text', {
+        method: 'POST',
+        body: formData,
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to transcribe audio');
+      }
+      
+      const data = await response.json();
+      const transcription = data.text;
+      
+      // Set transcription as input
+      if (transcription && transcription.trim()) {
+        setInput(transcription);
+        chatInputRef.current?.focus();
+      } else {
+        alert('Could not transcribe audio. Please try again or type your message.');
+      }
+      
+    } catch (error) {
+      console.error('Error transcribing audio:', error);
+      alert('Error transcribing audio. Please try again or type your message.');
+    } finally {
+      setIsTranscribing(false);
+      setRecordingTime(0);
+    }
+  };
+
+  // Toggle voice recording
+  const toggleRecording = () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  };
 
   // Handle chat submission with AgentForce
   const handleChatSubmit = async (e: React.FormEvent | null, quickResponse?: string) => {
@@ -456,6 +615,29 @@ export default function MedicalAssistantModal({
 
         {/* Chat Input */}
         <form onSubmit={handleChatSubmit} className="p-4 border-t border-gray-200 bg-white relative rounded-b-xl">
+          {/* Recording Indicator */}
+          {isRecording && (
+            <div className="absolute -top-10 left-0 right-0 bg-red-500 text-white p-2 flex items-center justify-center gap-2 rounded-t-lg">
+              <div className="h-3 w-3 rounded-full bg-white recording-pulse"></div>
+              <span className="font-medium">Recording: {formatRecordingTime(recordingTime)}</span>
+              <button 
+                type="button"
+                onClick={stopRecording}
+                className="ml-2 p-1 rounded-full bg-white/20 hover:bg-white/30"
+              >
+                <StopCircle className="h-4 w-4" />
+              </button>
+            </div>
+          )}
+
+          {/* Transcribing Indicator */}
+          {isTranscribing && (
+            <div className="absolute -top-10 left-0 right-0 bg-blue-500 text-white p-2 flex items-center justify-center gap-2 rounded-t-lg">
+              <Loader2 className="h-4 w-4 animate-spin" />
+              <span className="font-medium">Transcribing audio...</span>
+            </div>
+          )}
+
           <div className="flex gap-2 items-center">
             <button
               type="button"
@@ -472,20 +654,30 @@ export default function MedicalAssistantModal({
               onChange={handleInputChange}
               placeholder="Type your message..."
               className="flex-1 px-4 py-3 border border-gray-300 rounded-full focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent bg-gray-50"
-              disabled={isLoading}
+              disabled={isLoading || isRecording || isTranscribing}
             />
 
             <button
               type="button"
-              className="p-2 text-gray-500 hover:text-teal-600 hover:bg-gray-100 rounded-full"
+              onClick={toggleRecording}
+              disabled={isLoading || isTranscribing}
+              className={`p-2 rounded-full ${
+                isRecording 
+                  ? "bg-red-500 text-white" 
+                  : "text-gray-500 hover:text-teal-600 hover:bg-gray-100"
+              }`}
             >
-              <Mic className="h-5 w-5" />
+              {isRecording ? (
+                <StopCircle className="h-5 w-5" />
+              ) : (
+                <Mic className="h-5 w-5" />
+              )}
             </button>
 
             <button
               type="submit"
               className="rounded-full bg-gradient-to-r from-teal-600 to-cyan-600 hover:from-teal-700 hover:to-cyan-700 text-white p-3 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-md"
-              disabled={isLoading || !input.trim()}
+              disabled={isLoading || !input.trim() || isRecording || isTranscribing}
             >
               <Send className="h-5 w-5" />
             </button>

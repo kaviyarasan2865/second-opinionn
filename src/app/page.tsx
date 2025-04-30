@@ -1,117 +1,128 @@
-"use client";
-import type React from "react";
-import { useEffect, useRef, useState } from "react";
-import {
-  Clock,
-  MessageCircle,
-  Send,
-  Paperclip,   
-  Mic,
-  Check,
-  Info,
-  FileText,
-  Camera,
-  X,
-} from "lucide-react";
-import Image from "next/image";
-import agentLogo from "../../public/agent-force-logo.png";
+"use client"
+
+import type React from "react"
+import { useEffect, useRef, useState } from "react"
+import { Clock, MessageCircle, Send, Paperclip, Mic, Check, Info, FileText, Camera, X } from "lucide-react"
+import Image from "next/image"
+import agentLogo from "../../public/agent-force-logo.png"
 
 interface Message {
-  id: string;
-  content: string;
-  sender: "agentforce" | "patient"; // changed from "doctor" to "agentforce"
-  timestamp: Date;
-  status?: "sent" | "delivered" | "read";
-  isTyping?: boolean;
+  id: string
+  content: string
+  sender: "agentforce" | "patient"
+  timestamp: Date
+  status?: "sent" | "delivered" | "read"
+  isTyping?: boolean
 }
 
 interface AgentForceSession {
-  sessionId: string;
-  externalSessionKey: string;
-  accessToken: string;
+  sessionId: string
+  externalSessionKey: string
+  accessToken: string
 }
 
-// Slack Modal Component with dynamic functionality
+// Define Speech Recognition types
+interface SpeechRecognitionEvent {
+  results: {
+    [index: number]: {
+      [index: number]: {
+        transcript: string
+        confidence: number
+      }
+    }
+  }
+}
+
+interface SpeechRecognitionErrorEvent {
+  error: string
+  message?: string
+}
+
 // Slack Modal Component
 const SlackModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) => {
-  const [notificationSent, setNotificationSent] = useState(false);
-  const [notificationError, setNotificationError] = useState<string | null>(null);
+  const [notificationSent, setNotificationSent] = useState(false)
+  const [notificationError, setNotificationError] = useState<string | null>(null)
 
   useEffect(() => {
     if (isOpen && !notificationSent) {
-      sendSlackNotification();
+      sendSlackNotification()
     }
-  }, [isOpen, notificationSent]);
+  }, [isOpen, notificationSent])
 
   const sendSlackNotification = async () => {
     try {
-      const response = await fetch('/api/slack/notify', {
-        method: 'POST',
+      const response = await fetch("/api/slack/notify", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           patientName: "Ilan",
           doctorName: "Dr. Sarah Johnson (gastroenterologist)",
-          appointmentTime: new Date().toLocaleString()
+          appointmentTime: new Date().toLocaleString(),
         }),
-      }); 
+      })
 
       if (!response.ok) {
-        throw new Error('Failed to send notification');
+        throw new Error("Failed to send notification")
       }
 
-      setNotificationSent(true);
-      setNotificationError(null);
+      setNotificationSent(true)
+      setNotificationError(null)
     } catch (error) {
-      console.error('Error sending notification:', error);
-      setNotificationError('Failed to send notification to the medical team');
+      console.error("Error sending notification:", error)
+      setNotificationError("Failed to send notification to the medical team")
     }
-  };
+  }
 
-  if (!isOpen) return null;
-  
+  if (!isOpen) return null
+
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4 animate-fadeIn">
       <div className="bg-white rounded-xl shadow-2xl w-full max-w-md overflow-hidden panel-slide-up">
         <div className="bg-[#4A154B] p-4 flex justify-between items-center">
           <div className="flex items-center gap-2">
             <svg viewBox="0 0 54 54" className="h-8 w-8">
-              <path fill="#fff" d="M19.712.133a5.381 5.381 0 0 0-5.376 5.387 5.381 5.381 0 0 0 5.376 5.386h5.376V5.52A5.381 5.381 0 0 0 19.712.133m0 14.365H5.376A5.381 5.381 0 0 0 0 19.884a5.381 5.381 0 0 0 5.376 5.387h14.336a5.381 5.381 0 0 0 5.376-5.387 5.381 5.381 0 0 0-5.376-5.386"/>
-              <path fill="#fff" d="M53.76 19.884a5.381 5.381 0 0 0-5.376-5.386 5.381 5.381 0 0 0-5.376 5.386v5.387h5.376a5.381 5.381 0 0 0 5.376-5.387m-14.336 0V5.52A5.381 5.381 0 0 0 34.048.133a5.381 5.381 0 0 0-5.376 5.387v14.364a5.381 5.381 0 0 0 5.376 5.387 5.381 5.381 0 0 0 5.376-5.387"/>
-              <path fill="#fff" d="M34.048 54a5.381 5.381 0 0 0 5.376-5.387 5.381 5.381 0 0 0-5.376-5.386h-5.376v5.386A5.381 5.381 0 0 0 34.048 54m0-14.365h14.336a5.381 5.381 0 0 0 5.376-5.386 5.381 5.381 0 0 0-5.376-5.387H34.048a5.381 5.381 0 0 0-5.376 5.387 5.381 5.381 0 0 0 5.376 5.386"/>
-              <path fill="#fff" d="M0 34.249a5.381 5.381 0 0 0 5.376 5.386 5.381 5.381 0 0 0 5.376-5.386v-5.387H5.376A5.381 5.381 0 0 0 0 34.25m14.336-.001v14.364A5.381 5.381 0 0 0 19.712 54a5.381 5.381 0 0 0 5.376-5.387V34.25a5.381 5.381 0 0 0-5.376-5.387 5.381 5.381 0 0 0-5.376 5.387"/>
+              <path
+                fill="#fff"
+                d="M19.712.133a5.381 5.381 0 0 0-5.376 5.387 5.381 5.381 0 0 0 5.376 5.386h5.376V5.52A5.381 5.381 0 0 0 19.712.133m0 14.365H5.376A5.381 5.381 0 0 0 0 19.884a5.381 5.381 0 0 0 5.376 5.387h14.336a5.381 5.381 0 0 0 5.376-5.387 5.381 5.381 0 0 0-5.376-5.386"
+              />
+              <path
+                fill="#fff"
+                d="M53.76 19.884a5.381 5.381 0 0 0-5.376-5.386 5.381 5.381 0 0 0-5.376 5.386v5.387h5.376a5.381 5.381 0 0 0 5.376-5.387m-14.336 0V5.52A5.381 5.381 0 0 0 34.048.133a5.381 5.381 0 0 0-5.376 5.387v14.364a5.381 5.381 0 0 0 5.376 5.387 5.381 5.381 0 0 0 5.376-5.387"
+              />
+              <path
+                fill="#fff"
+                d="M34.048 54a5.381 5.381 0 0 0 5.376-5.387 5.381 5.381 0 0 0-5.376-5.386h-5.376v5.386A5.381 5.381 0 0 0 34.048 54m0-14.365h14.336a5.381 5.381 0 0 0 5.376-5.386 5.381 5.381 0 0 0-5.376-5.387H34.048a5.381 5.381 0 0 0-5.376 5.387 5.381 5.381 0 0 0 5.376 5.386"
+              />
+              <path
+                fill="#fff"
+                d="M0 34.249a5.381 5.381 0 0 0 5.376 5.386 5.381 5.381 0 0 0 5.376-5.386v-5.387H5.376A5.381 5.381 0 0 0 0 34.25m14.336-.001v14.364A5.381 5.381 0 0 0 19.712 54a5.381 5.381 0 0 0 5.376-5.387V34.25a5.381 5.381 0 0 0-5.376-5.387 5.381 5.381 0 0 0-5.376 5.387"
+              />
             </svg>
             <h3 className="text-white font-bold text-lg">Appointment Confirmation</h3>
           </div>
-          <button 
-            onClick={onClose}
-            className="text-white hover:bg-white/10 rounded-full p-1"
-          >
+          <button onClick={onClose} className="text-white hover:bg-white/10 rounded-full p-1">
             <X className="h-6 w-6" />
           </button>
         </div>
-        
+
         <div className="p-6 space-y-4">
           <div className="flex items-center justify-center">
             <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
               <Check className="h-6 w-6 text-green-600" />
             </div>
           </div>
-          
+
           <div className="text-center space-y-2">
-            <h4 className="text-xl font-semibold text-gray-900">
-              Appointment Successfully Booked!
-            </h4>
+            <h4 className="text-xl font-semibold text-gray-900">Appointment Successfully Booked!</h4>
             <p className="text-gray-600">
               Your appointment has been scheduled with Dr. Sarah Johnson.
               {notificationSent && " The medical team has been notified."}
-              {notificationError && (
-                <span className="text-red-500 block mt-2 text-sm">{notificationError}</span>
-              )}
+              {notificationError && <span className="text-red-500 block mt-2 text-sm">{notificationError}</span>}
             </p>
           </div>
-          
+
           <div className="bg-gray-50 rounded-lg p-4">
             <div className="text-sm text-gray-600">
               <div className="flex items-center gap-2 mb-2">
@@ -124,7 +135,7 @@ const SlackModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
               </div>
             </div>
           </div>
-          
+
           <button
             onClick={onClose}
             className="w-full bg-[#4A154B] text-white py-2 rounded-md hover:bg-[#3e1040] transition-colors"
@@ -134,46 +145,44 @@ const SlackModal = ({ isOpen, onClose }: { isOpen: boolean; onClose: () => void 
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
 export default function Home() {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "1",
       content: "Hello! How can I help you with your medical questions today?",
-      sender: "agentforce", // changed from "doctor" to "agentforce"
+      sender: "agentforce",
       timestamp: new Date(),
       status: "read",
     },
-  ]);
-  const [input, setInput] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
-  const [showAttachmentOptions, setShowAttachmentOptions] = useState(false);
-  const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(
-    null
-  );
-  const [agentForceSession, setAgentForceSession] = useState<AgentForceSession | null>(null);
+  ])
+  const [input, setInput] = useState("")
+  const [isLoading, setIsLoading] = useState(false)
+  const [showAttachmentOptions, setShowAttachmentOptions] = useState(false)
+  const [typingTimeout, setTypingTimeout] = useState<NodeJS.Timeout | null>(null)
+  const [agentForceSession, setAgentForceSession] = useState<AgentForceSession | null>(null)
   const [quickResponses] = useState([
     "How do I get a second opinion?",
     "What conditions do you specialize in?",
     "How much does a consultation cost?",
     "How long does the process take?",
-  ]);
-  // Add state for Slack modal
-  const [showSlackModal, setShowSlackModal] = useState(false);
+  ])
+  const [showSlackModal, setShowSlackModal] = useState(false)
+  const [isListening, setIsListening] = useState(false)
 
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const chatInputRef = useRef<HTMLInputElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null)
+  const chatInputRef = useRef<HTMLInputElement>(null)
 
   // Scroll to bottom of chat when messages change
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages]);
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [messages])
 
   // Add animations and styling
   useEffect(() => {
-    const style = document.createElement("style");
+    const style = document.createElement("style")
     style.innerHTML = `
       @keyframes float {
         0% {
@@ -260,70 +269,115 @@ export default function Home() {
       .bounce-effect {
         animation: bounce 1s infinite;
       }
-    `;
-    document.head.appendChild(style);
+    `
+    document.head.appendChild(style)
     return () => {
-      document.head.removeChild(style);
-    };
-  }, []);
+      document.head.removeChild(style)
+    }
+  }, [])
+
+  // Handle voice input
+  const toggleVoiceInput = () => {
+    if (typeof window === "undefined") return
+
+    // Browser compatibility check - using type assertion to avoid TypeScript errors
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition
+
+    if (!SpeechRecognition) {
+      console.warn("Speech recognition not supported in this browser")
+      return
+    }
+
+    if (isListening) {
+      // Stop listening
+      setIsListening(false)
+      return
+    }
+
+    try {
+      const recognition = new SpeechRecognition()
+      recognition.continuous = false
+      recognition.interimResults = false
+      recognition.lang = "en-US"
+
+      recognition.onresult = (event: SpeechRecognitionEvent) => {
+        const transcript = event.results[0][0].transcript
+        setInput(transcript)
+        setIsListening(false)
+      }
+
+      recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
+        console.error("Speech recognition error", event.error)
+        setIsListening(false)
+      }
+
+      recognition.onend = () => {
+        setIsListening(false)
+      }
+
+      recognition.start()
+      setIsListening(true)
+    } catch (error) {
+      console.error("Error initializing speech recognition:", error)
+      setIsListening(false)
+    }
+  }
 
   // Handle typing indicator
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setInput(e.target.value);
+    setInput(e.target.value)
 
     // Clear previous timeout
     if (typingTimeout) {
-      clearTimeout(typingTimeout);
+      clearTimeout(typingTimeout)
     }
 
     // If we have a non-empty input, show typing indicator
     if (e.target.value.trim()) {
       const timeout = setTimeout(() => {
         // Hide typing indicator after 2 seconds
-      }, 2000);
-      setTypingTimeout(timeout);
+      }, 2000)
+      setTypingTimeout(timeout)
     }
-  };
+  }
 
   // Toggle attachment options
   const toggleAttachmentOptions = () => {
-    setShowAttachmentOptions(!showAttachmentOptions);
-  };
+    setShowAttachmentOptions(!showAttachmentOptions)
+  }
 
   // Initialize AgentForce session
   useEffect(() => {
     const initializeAgentForceSession = async () => {
       try {
-        const response = await fetch('/api/agentforce/session', {
-          method: 'POST',
+        const response = await fetch("/api/agentforce/session", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
-        });
+        })
 
         if (!response.ok) {
-          throw new Error('Failed to initialize AgentForce session');
+          throw new Error("Failed to initialize AgentForce session")
         }
 
-        const data = await response.json();
-        setAgentForceSession(data);
+        const data = await response.json()
+        setAgentForceSession(data)
       } catch (error) {
-        console.error('Error initializing AgentForce session:', error);
+        console.error("Error initializing AgentForce session:", error)
       }
-    };
+    }
 
-    initializeAgentForceSession();
-  }, []);
+    initializeAgentForceSession()
+  }, [])
 
   // Handle chat submission with AgentForce
-  const handleChatSubmit = async (
-    e: React.FormEvent | null,
-    quickResponse?: string
-  ) => {
-    if (e) e.preventDefault();
+  const handleChatSubmit = async (e: React.FormEvent | null, quickResponse?: string) => {
+    if (e) e.preventDefault()
 
-    const messageText = quickResponse || input.trim();
-    if (!messageText || !agentForceSession) return;
+    const messageText = quickResponse || input.trim()
+    if (!messageText || !agentForceSession) return
 
     // Add user message
     const newUserMessage: Message = {
@@ -332,102 +386,86 @@ export default function Home() {
       sender: "patient",
       timestamp: new Date(),
       status: "sent",
-    };
-    setMessages((prevMessages) => [...prevMessages, newUserMessage]);
-    setInput("");
-    setIsLoading(true);
+    }
+    setMessages((prevMessages) => [...prevMessages, newUserMessage])
+    setInput("")
+    setIsLoading(true)
 
     // Update message status after a short delay
     setTimeout(() => {
       setMessages((prevMessages) =>
-        prevMessages.map((msg) =>
-          msg.id === newUserMessage.id ? { ...msg, status: "delivered" } : msg
-        )
-      );
-    }, 500);
+        prevMessages.map((msg) => (msg.id === newUserMessage.id ? { ...msg, status: "delivered" } : msg)),
+      )
+    }, 500)
 
     // Show typing indicator
     const typingMessage: Message = {
       id: (Date.now() + 1).toString(),
       content: "",
-      sender: "agentforce", // changed from "doctor" to "agentforce"
+      sender: "agentforce",
       timestamp: new Date(),
       isTyping: true,
-    };
-    setMessages((prevMessages) => [...prevMessages, typingMessage]);
+    }
+    setMessages((prevMessages) => [...prevMessages, typingMessage])
 
     try {
       // Send message to AgentForce through our API
-      const response = await fetch('/api/agentforce/message', {
-        method: 'POST',
+      const response = await fetch("/api/agentforce/message", {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
         body: JSON.stringify({
           sessionId: agentForceSession.sessionId,
           message: messageText,
           accessToken: agentForceSession.accessToken,
         }),
-      });
+      })
 
       if (!response.ok) {
-        throw new Error('Failed to send message to AgentForce');
+        throw new Error("Failed to send message to AgentForce")
       }
 
-      const data = await response.json();
-      console.log('Backend API Response:', JSON.stringify(data, null, 2));
-      
+      const data = await response.json()
+      console.log("Backend API Response:", JSON.stringify(data, null, 2))
+
       // Remove typing indicator
-      setMessages((prevMessages) => prevMessages.filter((msg) => !msg.isTyping));
+      setMessages((prevMessages) => prevMessages.filter((msg) => !msg.isTyping))
 
       // Add AgentForce response
-      const responseText = data?.messages?.[0]?.message || 
-                          "I&apos;m sorry, I couldn't process your request. Please try again.";
-      
+      const responseText =
+        data?.messages?.[0]?.message || "I'm sorry, I couldn't process your request. Please try again."
+
       const newAssistantMessage: Message = {
         id: (Date.now() + 2).toString(),
         content: responseText,
-        sender: "agentforce", // changed from "doctor" to "agentforce"
+        sender: "agentforce",
         timestamp: new Date(),
         status: "read",
-      };
-      setMessages((prevMessages) => [...prevMessages, newAssistantMessage]);
-      
+      }
+      setMessages((prevMessages) => [...prevMessages, newAssistantMessage])
+
       // Check if response contains "successfully scheduled" and show Slack modal
       if (responseText.toLowerCase().includes("successfully scheduled")) {
-        setShowSlackModal(true);
+        setShowSlackModal(true)
       }
     } catch (error) {
-      console.error('Error sending message to AgentForce:', error);
+      console.error("Error sending message to AgentForce:", error)
       // Remove typing indicator and show error message
-      setMessages((prevMessages) => prevMessages.filter((msg) => !msg.isTyping));
+      setMessages((prevMessages) => prevMessages.filter((msg) => !msg.isTyping))
       const errorMessage: Message = {
         id: (Date.now() + 2).toString(),
         content: "Sorry, I'm having trouble connecting to the medical assistant. Please try again later.",
-        sender: "agentforce", // changed from "doctor" to "agentforce"
+        sender: "agentforce",
         timestamp: new Date(),
         status: "read",
-      };
-      setMessages((prevMessages) => [...prevMessages, errorMessage]);
+      }
+      setMessages((prevMessages) => [...prevMessages, errorMessage])
     } finally {
-      setIsLoading(false);
-      chatInputRef.current?.focus();
+      setIsLoading(false)
+      chatInputRef.current?.focus()
     }
-  };
-
-  // Get message status icon
-  // const getMessageStatusIcon = (status: string | undefined) => {
-  //   switch (status) {
-  //     case "sent":
-  //       return <Clock className="h-3 w-3 text-gray-400" />;
-  //     case "delivered":
-  //       return <Check className="h-3 w-3 text-gray-400" />;
-  //     case "read":
-  //       return <Check className="h-3 w-3 text-blue-500" />;
-  //     default:
-  //       return null;
-  //   }
-  // };
+  }
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -453,9 +491,7 @@ export default function Home() {
               left: `${Math.random() * 100}%`,
               top: `${Math.random() * 100}%`,
               background: "rgba(255, 255, 255, 0.8)",
-              animation: `float ${
-                5 + Math.random() * 10
-              }s ease-in-out infinite`,
+              animation: `float ${5 + Math.random() * 10}s ease-in-out infinite`,
               animationDelay: `${Math.random() * 5}s`,
             }}
           />
@@ -540,18 +576,13 @@ export default function Home() {
                   {/* Date Divider */}
                   <div className="flex items-center justify-center my-4">
                     <div className="bg-gray-200 h-px flex-grow"></div>
-                    <span className="px-3 text-xs text-gray-500 font-medium">
-                      Today
-                    </span>
+                    <span className="px-3 text-xs text-gray-500 font-medium">Today</span>
                     <div className="bg-gray-200 h-px flex-grow"></div>
                   </div>
 
                   {messages.map((message) =>
                     message.isTyping ? (
-                      <div
-                        key={message.id}
-                        className="flex justify-start message-bubble-in"
-                      >
+                      <div key={message.id} className="flex justify-start message-bubble-in">
                         <div className="max-w-[80%] rounded-2xl p-4 bg-white border border-gray-200 shadow-sm">
                           <div className="flex items-center gap-2 mb-2">
                             <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-teal-500 flex items-center justify-center text-white">
@@ -577,7 +608,9 @@ export default function Home() {
                         key={message.id}
                         className={`flex ${message.sender === "patient" ? "justify-end" : "justify-start"} message-bubble-in`}
                       >
-                        <div className={`max-w-[80%] rounded-2xl p-4 ${message.sender === "patient" ? "bg-teal-100 text-right" : "bg-white border border-gray-200"} shadow-sm`}>
+                        <div
+                          className={`max-w-[80%] rounded-2xl p-4 ${message.sender === "patient" ? "bg-teal-100 text-right" : "bg-white border border-gray-200"} shadow-sm`}
+                        >
                           {message.sender === "agentforce" && (
                             <div className="flex items-center gap-2 mb-2">
                               <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-teal-500 flex items-center justify-center text-white">
@@ -587,10 +620,9 @@ export default function Home() {
                             </div>
                           )}
                           <div>{message.content}</div>
-                          {/* ... existing code for timestamp/status ... */}
                         </div>
                       </div>
-                    )
+                    ),
                   )}
                   <div ref={messagesEndRef} />
                 </div>
@@ -632,9 +664,15 @@ export default function Home() {
 
                   <button
                     type="button"
-                    className="p-2 text-gray-500 hover:text-teal-600 hover:bg-gray-100 rounded-full"
+                    onClick={toggleVoiceInput}
+                    className={`p-2 rounded-full transition-colors ${
+                      isListening
+                        ? "bg-red-100 text-red-600 animate-pulse"
+                        : "text-gray-500 hover:text-teal-600 hover:bg-gray-100"
+                    }`}
                   >
                     <Mic className="h-5 w-5" />
+                    {isListening && <span className="sr-only">Listening...</span>}
                   </button>
 
                   <button
@@ -676,7 +714,7 @@ export default function Home() {
               <div className="flex items-center gap-2">
                 <p className="text-white/70 text-sm">Powered by</p>
                 <Image
-                  src={agentLogo}
+                  src={agentLogo || "/placeholder.svg"}
                   alt="agentforce"
                   width={60}
                   height={40}
@@ -716,12 +754,8 @@ export default function Home() {
           }
         }
       `}</style>
-{/* Slack Modal */}
-<SlackModal 
-  isOpen={showSlackModal} 
-  onClose={() => setShowSlackModal(false)} 
-/>
+      {/* Slack Modal */}
+      <SlackModal isOpen={showSlackModal} onClose={() => setShowSlackModal(false)} />
     </div>
-  );
-
+  )
 }
