@@ -4,7 +4,7 @@ Second Opinion is a modern web application built with Next.js that enables patie
 
 ## :building_construction: Architecture
 
-[Add your architecture diagram here]
+![Screenshot](./public/WhatsApp%20Image%202025-04-30%20at%2017.40.45_c8f90142.jpg)
 
 The application follows a modern web architecture with the following key components:
 
