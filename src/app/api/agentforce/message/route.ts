@@ -36,6 +36,23 @@ export async function POST(req: NextRequest) {
 
     const data = await response.json();
     console.log('Salesforce API Response:', JSON.stringify(data, null, 2));
+    //testing
+    // // Modify the response for testing the "successfully scheduled" modal trigger
+    // if (data.messages && data.messages.length > 0) {
+    //   // Add "successfully scheduled" to the first message for testing purposes
+    //   const originalMessage = data.messages[0].message || '';
+    //   data.messages[0].message = originalMessage + 
+    //     " Your appointment has been successfully scheduled. You can now communicate with the doctor directly.";
+    // } else {
+    //   // If there are no messages, create one with the test phrase
+    //   data.messages = [{
+    //     message: "Your request has been successfully scheduled. A doctor will be in touch with you shortly.",
+    //     sequenceId: Date.now(),
+    //     type: "Text"
+    //   }];
+    // }
+    // testing end
+
     return NextResponse.json(data);
   } catch (error) {
     console.error('Error sending message to AgentForce:', error);
@@ -44,4 +61,4 @@ export async function POST(req: NextRequest) {
       { status: 500 }
     );
   }
-} 
+}
