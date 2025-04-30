@@ -1,8 +1,5 @@
 "use client";
-
 import type React from "react";
-
-
 import { useEffect, useRef, useState } from "react";
 import {
   Clock,
@@ -10,7 +7,6 @@ import {
   Send,
   Paperclip,   
   Mic,
-  ThumbsUp,
   Check,
   Info,
   FileText,
@@ -23,7 +19,7 @@ import agentLogo from "../../public/agent-force-logo.png";
 interface Message {
   id: string;
   content: string;
-  sender: "doctor" | "patient";
+  sender: "agentforce" | "patient"; // changed from "doctor" to "agentforce"
   timestamp: Date;
   status?: "sent" | "delivered" | "read";
   isTyping?: boolean;
@@ -146,7 +142,7 @@ export default function Home() {
     {
       id: "1",
       content: "Hello! How can I help you with your medical questions today?",
-      sender: "doctor",
+      sender: "agentforce", // changed from "doctor" to "agentforce"
       timestamp: new Date(),
       status: "read",
     },
@@ -354,7 +350,7 @@ export default function Home() {
     const typingMessage: Message = {
       id: (Date.now() + 1).toString(),
       content: "",
-      sender: "doctor",
+      sender: "agentforce", // changed from "doctor" to "agentforce"
       timestamp: new Date(),
       isTyping: true,
     };
@@ -391,7 +387,7 @@ export default function Home() {
       const newAssistantMessage: Message = {
         id: (Date.now() + 2).toString(),
         content: responseText,
-        sender: "doctor",
+        sender: "agentforce", // changed from "doctor" to "agentforce"
         timestamp: new Date(),
         status: "read",
       };
@@ -408,7 +404,7 @@ export default function Home() {
       const errorMessage: Message = {
         id: (Date.now() + 2).toString(),
         content: "Sorry, I'm having trouble connecting to the medical assistant. Please try again later.",
-        sender: "doctor",
+        sender: "agentforce", // changed from "doctor" to "agentforce"
         timestamp: new Date(),
         status: "read",
       };
@@ -420,18 +416,18 @@ export default function Home() {
   };
 
   // Get message status icon
-  const getMessageStatusIcon = (status: string | undefined) => {
-    switch (status) {
-      case "sent":
-        return <Clock className="h-3 w-3 text-gray-400" />;
-      case "delivered":
-        return <Check className="h-3 w-3 text-gray-400" />;
-      case "read":
-        return <Check className="h-3 w-3 text-blue-500" />;
-      default:
-        return null;
-    }
-  };
+  // const getMessageStatusIcon = (status: string | undefined) => {
+  //   switch (status) {
+  //     case "sent":
+  //       return <Clock className="h-3 w-3 text-gray-400" />;
+  //     case "delivered":
+  //       return <Check className="h-3 w-3 text-gray-400" />;
+  //     case "read":
+  //       return <Check className="h-3 w-3 text-blue-500" />;
+  //     default:
+  //       return null;
+  //   }
+  // };
 
   return (
     <div className="relative min-h-screen overflow-hidden">
@@ -579,62 +575,19 @@ export default function Home() {
                     ) : (
                       <div
                         key={message.id}
-                        className={`flex ${
-                          message.sender === "patient"
-                            ? "justify-end"
-                            : "justify-start"
-                        } message-bubble-in`}
+                        className={`flex ${message.sender === "patient" ? "justify-end" : "justify-start"} message-bubble-in`}
                       >
-                        <div
-                          className={`max-w-[80%] rounded-2xl p-4 ${
-                            message.sender === "patient"
-                              ? "bg-gradient-to-r from-teal-600 to-teal-500 text-white shadow-md"
-                              : "bg-white border border-gray-200 text-gray-800 shadow-sm"
-                          }`}
-                        >
-                          <div className="flex items-center gap-2 mb-2">
-                            {message.sender === "patient" ? (
-                              <div className="h-8 w-8 rounded-full bg-teal-100 flex items-center justify-center overflow-hidden">
-                                <span className="text-xs font-bold text-teal-800">
-                                  Y
-                                </span>
-                              </div>
-                            ) : (
+                        <div className={`max-w-[80%] rounded-2xl p-4 ${message.sender === "patient" ? "bg-teal-100 text-right" : "bg-white border border-gray-200"} shadow-sm`}>
+                          {message.sender === "agentforce" && (
+                            <div className="flex items-center gap-2 mb-2">
                               <div className="h-8 w-8 rounded-full bg-gradient-to-r from-blue-500 to-teal-500 flex items-center justify-center text-white">
-                                <span className="text-xs font-bold">Dr</span>
+                                <span className="text-xs font-bold">AF</span>
                               </div>
-                            )}
-                            <span className="font-medium text-sm">
-                              {message.sender === "patient" ? "You" : "Doctor"}
-                            </span>
-                            <span
-                              className={`text-xs ml-auto flex items-center gap-1 ${
-                                message.sender === "patient"
-                                  ? "text-teal-100"
-                                  : "text-gray-500"
-                              }`}
-                            >
-                              <Clock className="w-3 h-3" />
-                              {message.timestamp.toLocaleTimeString([], {
-                                hour: "2-digit",
-                                minute: "2-digit",
-                              })}
-                            </span>
-                          </div>
-                          <p className="mb-1">{message.content}</p>
-                          {message.sender === "patient" && (
-                            <div className="flex justify-end mt-1">
-                              {getMessageStatusIcon(message.status)}
+                              <span className="font-medium text-sm">AgentForce</span>
                             </div>
                           )}
-                          {message.sender === "doctor" && (
-                            <div className="flex justify-end mt-2 space-x-2">
-                              <button className="text-xs text-teal-600 bg-teal-50 px-2 py-1 rounded-full flex items-center hover:bg-teal-100 transition-colors">
-                                <ThumbsUp className="w-3 h-3 mr-1" />
-                                Helpful
-                              </button>
-                            </div>
-                          )}
+                          <div>{message.content}</div>
+                          {/* ... existing code for timestamp/status ... */}
                         </div>
                       </div>
                     )
@@ -772,4 +725,3 @@ export default function Home() {
   );
 
 }
-
