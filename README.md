@@ -133,21 +133,21 @@ Before running the project, ensure you have:
    npm install
    ```
 
-3. **Set up environment variables**
-   Create a `.env.local` file in the root directory with the following variables:
-   ```
+### 3. Set up Environment Variables
+
+Create a `.env.local` file in the root directory with the following content:
+
+```env
 MONGODB_URI=your_mongodb_uri
-NEXTAUTH_URL=URL_ADDRESS:3000
-password=your_password
+NEXTAUTH_URL=http://localhost:3000
 NEXTAUTH_SECRET=your_nextauth_secret
 NEXT_PUBLIC_SF_API_HOST=https://api.salesforce.com
 NEXT_PUBLIC_SF_ORG_DOMAIN=https://orgfarm-84304637e8-dev-ed.develop.my.salesforce.com
 NEXT_PUBLIC_SF_CLIENT_ID=your_client_id
 NEXT_PUBLIC_SF_CLIENT_SECRET=your_client_secret
 NEXT_PUBLIC_SF_AGENT_ID=your_agent_id
-MONGODB_URI=
 SLACK_WEBHOOK_URL=your_slack_webhook_url
-   ```
+
 
 4. **Run the development server**
    ```bash
